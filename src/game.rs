@@ -5,7 +5,7 @@ use piston_window::types::Color;
 use piston_window::*;
 
 const BACK_COLOR: Color = [0.5, 0.5, 0.5, 1.0];
-const MOVING_PERIOD: f64 = 0.1;
+const MOVING_PERIOD: f64 = 0.5;
 const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * window::BLOCK_SIZE;
 const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * window::BLOCK_SIZE;
 
@@ -18,7 +18,7 @@ pub struct Game {
 impl Game {
     pub fn new() -> Game {
         let mut board = board::Board::new();
-        let block = Block::new(&mut board, (0, (board::WIDTH / 2) - 1 as usize));
+        let block = Block::new(&mut board, (0, (board::WIDTH / 2) - 1));
 
         Game { 
             board, 
@@ -70,7 +70,7 @@ impl Game {
     
         if self.waiting_time > MOVING_PERIOD {
             if self.block.status == BlockStatus::Frozen {
-                self.block = Block::new(&mut self.board, (0, (board::WIDTH / 2) - 1 as usize));
+                self.block = Block::new(&mut self.board, (0, (board::WIDTH / 2) - 1));
             } else {
                 self.block.move_down(&mut self.board);
             }

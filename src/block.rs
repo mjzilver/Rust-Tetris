@@ -36,25 +36,11 @@ impl Block {
     }
 
     pub fn update(&mut self, board: &mut Board, y_change: i16, x_change: i16) {
-        let matrix = self.shape.get_shape();
+        let matrix: [[i32; 4]; 4] = self.shape.get_shape();
         let next_position = Self::coord_add_i16_to_usize(self.position, (y_change, x_change));
 
-        for y in (0..matrix.len()).rev() {
-            for x in 0..matrix[y].len() {
-                if matrix[y][x] == 1 && self.status == BlockStatus::Moving {
-                    if next_position.0 + y == board::HEIGHT {  
-                        return self.status = BlockStatus::Frozen
-                    } else if board.data[next_position.0 + y][next_position.1 + x] != Cell::Empty {
-                        let local_pos = Self::coord_add_i16_to_usize((y, x), (y_change, x_change));
-                        if matrix[local_pos.0][local_pos.1] == 0 {
-                            return self.status = BlockStatus::Frozen
-                        } 
-                    }
-                }
-            }
-        }
-
-        if self.status == BlockStatus::Moving {
+        if self.can_move(board, &matrix, next_position, y_change, x_change) {
+            // erases the old position
             for y in 0..matrix.len() {
                 for x in 0..matrix[y].len() {
                     if matrix[y][x] == 1 {
@@ -63,6 +49,7 @@ impl Block {
                 }
             }
 
+            // moves to the new position
             for y in 0..matrix.len() {
                 for x in 0..matrix[y].len() {
                     if matrix[y][x] == 1 {
@@ -73,6 +60,41 @@ impl Block {
 
             self.position = next_position;
         }
+    }
+
+    fn can_move(&mut self, board: &mut Board, matrix: &[[i32; 4]; 4], 
+    next_position: (usize, usize),  y_change: i16, x_change: i16)
+        -> bool { 
+        if self.status != BlockStatus::Moving {
+            return false
+        }
+
+        println!("{:?}", next_position);
+
+        // checks if the block can move 
+        for y in 0..matrix.len() {
+            for x in 0..matrix[y].len() {
+                if matrix[y][x] == 1 {
+                    if next_position.0 + y >= board::HEIGHT {  
+                        self.status = BlockStatus::Frozen;
+                        return false
+                    } else if next_position.1 >= board::WIDTH ||(next_position.1 + x) >= board::WIDTH {
+                        return false
+                    } else if board.data[next_position.0 + y][next_position.1 + x] != Cell::Empty {
+                        let local_pos = Self::coord_add_i16_to_usize((y, x), (y_change, x_change));
+                        if local_pos.0 <= matrix.len() && local_pos.1 <= matrix[local_pos.0].len() {
+                            if matrix[local_pos.0][local_pos.1] == 0 {
+                                self.status = BlockStatus::Frozen;
+                                return false
+                            } 
+                        } else {
+                            return false
+                        }
+                    }
+                }
+            }
+        }
+        return true
     }
 
     fn coord_add_i16_to_usize(u: (usize, usize), i: (i16, i16) ) -> (usize, usize){
