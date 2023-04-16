@@ -2,25 +2,25 @@ use rand::Rng;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum BlockShape {
-    IBlock,
-    JBlock,
-    LBlock,
-    OBlock,
-    SBlock,
-    TBlock,
-    ZBlock,
+    I,
+    J,
+    L,
+    O,
+    S,
+    T,
+    Z,
 }
 
 impl BlockShape {
     pub fn random() -> Self {
         let blocks = [
-            BlockShape::IBlock,
-            BlockShape::JBlock,
-            BlockShape::LBlock,
-            BlockShape::OBlock,
-            BlockShape::SBlock,
-            BlockShape::TBlock,
-            BlockShape::ZBlock,
+            BlockShape::I,
+            BlockShape::J,
+            BlockShape::L,
+            BlockShape::O,
+            BlockShape::S,
+            BlockShape::T,
+            BlockShape::Z,
         ];
         let mut rng = rand::thread_rng();
         blocks[rng.gen_range(0..blocks.len())]
@@ -28,43 +28,43 @@ impl BlockShape {
 
     pub fn get_shape(&self) -> [[i32; 4]; 4] {
         match *self {
-            BlockShape::IBlock => [
+            BlockShape::I => [
                 [0, 0, 0, 0],
                 [1, 1, 1, 1],
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
             ],
-            BlockShape::JBlock => [
+            BlockShape::J => [
                 [1, 0, 0, 0],
                 [1, 1, 1, 0],
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
             ],
-            BlockShape::LBlock => [
+            BlockShape::L => [
                 [0, 0, 1, 0],
                 [1, 1, 1, 0],
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
             ],
-            BlockShape::OBlock => [
+            BlockShape::O => [
                 [1, 1, 0, 0],
                 [1, 1, 0, 0],
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
             ],
-            BlockShape::SBlock => [
+            BlockShape::S => [
                 [0, 1, 1, 0],
                 [1, 1, 0, 0],
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
             ],
-            BlockShape::TBlock => [
+            BlockShape::T => [
                 [0, 1, 0, 0],
                 [1, 1, 1, 0],
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
             ],
-            BlockShape::ZBlock => [
+            BlockShape::Z => [
                 [1, 1, 0, 0],
                 [0, 1, 1, 0],
                 [0, 0, 0, 0],

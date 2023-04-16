@@ -111,7 +111,7 @@ impl Block {
                 }
             }
         }
-        return true;
+        true
     }
 
     fn is_out_of_bounds( position: (isize, isize), y: usize, x: usize) -> bool {
@@ -138,8 +138,7 @@ impl Block {
                 }
             }
         }
-
-        return true;
+        true
     }
 
     fn coord_add_i16_to_usize(u: (usize, usize), i: (i16, i16)) -> (usize, usize) {
@@ -150,8 +149,7 @@ impl Block {
     }
 
     fn to_absolute<'a>(&mut self, board: &'a mut Board, y: usize, x: usize) -> &'a mut Cell {
-        return &mut board.data[(self.position.0 + y as isize) as usize]
-            [(self.position.1 + x as isize) as usize];
+        &mut board.data[(self.position.0 + y as isize) as usize][(self.position.1 + x as isize) as usize]
     }
 
     fn to_absolute_from<'a>(
@@ -159,7 +157,7 @@ impl Block {
         position: (isize, isize),
         y: usize, x: usize,
     ) -> &'a mut Cell {
-        return &mut board.data[(position.0 + y as isize) as usize][(position.1 + x as isize) as usize];
+        &mut board.data[(position.0 + y as isize) as usize][(position.1 + x as isize) as usize]
     }
 
     pub fn move_sideways(&mut self, board: &mut Board, x_change: i16) {
@@ -171,11 +169,11 @@ impl Block {
     }
 
     pub fn rotate(&mut self, board: &mut Board) {
-        if self.shape == blockshape::BlockShape::OBlock {
+        if self.shape == blockshape::BlockShape::O {
             return;
         }
 
-        let mut rotated_matrix: [[i32; 4]; 4] = self.matrix.clone();
+        let mut rotated_matrix: [[i32; 4]; 4] = self.matrix;
         BlockShape::rotate_matrix(&mut rotated_matrix);
 
         if self.can_rotate(board, &rotated_matrix) {
