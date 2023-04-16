@@ -1,5 +1,8 @@
-
-use crate::{blockshape::{BlockShape, self}, board::{Board, Cell, self}, blockcolor::BlockColor};
+use crate::{
+    blockcolor::BlockColor,
+    blockshape::{self, BlockShape},
+    board::{self, Board, Cell},
+};
 
 pub struct Block {
     shape: BlockShape,
@@ -24,25 +27,27 @@ impl Block {
         for y in 0..matrix.len() {
             for x in 0..matrix[y].len() {
                 if matrix[y][x] == 1 {
-                    
                     board.data[position.0 + y][position.1 + x] = Cell::Color(color.to_color());
                 }
             }
         }
 
-        Block{
+        Block {
             shape,
             matrix,
             color,
             status: BlockStatus::Moving,
-            position: self_position
+            position: self_position,
         }
     }
 
     pub fn update(&mut self, board: &mut Board, y_change: i16, x_change: i16) {
-        let next_position = (self.position.0 + y_change as isize, self.position.1 + x_change as isize);
+        let next_position = (
+            self.position.0 + y_change as isize,
+            self.position.1 + x_change as isize,
+        );
 
-        if self.can_move(board, &self.matrix.clone(), next_position, y_change, x_change) {
+        if self.can_move(board, next_position, y_change, x_change) {
             // erases the old position
             for y in 0..self.matrix.len() {
                 for x in 0..self.matrix[y].len() {
@@ -56,7 +61,8 @@ impl Block {
             for y in 0..self.matrix.len() {
                 for x in 0..self.matrix[y].len() {
                     if self.matrix[y][x] == 1 {
-                        *self.to_absolute(board, y, x) = Cell::Color(self.color.to_color())
+                        *self.to_absolute_from(board, next_position, y, x) =
+                            Cell::Color(self.color.to_color())
                     }
                 }
             }
@@ -65,54 +71,59 @@ impl Block {
         }
     }
 
-    fn can_move(&mut self, board: &mut Board, matrix: &[[i32; 4]; 4], 
-    next_position: (isize, isize),  y_change: i16, x_change: i16)
-        -> bool { 
+    fn can_move(
+        &mut self, board: &mut Board,
+        next_position: (isize, isize),
+        y_change: i16,  x_change: i16,
+    ) -> bool {
         if self.status != BlockStatus::Moving {
-            return false
+            return false;
         }
-        // checks if the block can move 
-        for y in 0..matrix.len() {
-            for x in 0..matrix[y].len() {
-                if matrix[y][x] == 1 {
-                    if (next_position.0 + y as isize) as usize >= board::HEIGHT {  
+        // checks if the block can move
+        for y in 0..self.matrix.len() {
+            for x in 0..self.matrix[y].len() {
+                if self.matrix[y][x] == 1 {
+                    if (next_position.0 + y as isize) as usize >= board::HEIGHT {
                         self.status = BlockStatus::Frozen;
-                        return false
-                    } else if next_position.1 >= board::WIDTH as isize||(next_position.1 + x as isize) >= board::WIDTH as isize{
-                        return false
-                    } else if *self.to_absolute(board, y, x) != Cell::Empty {
+                        return false;
+                    } else if next_position.1 >= board::WIDTH as isize || (next_position.1 + x as isize) >= board::WIDTH as isize {
+                        return false;
+                    } else if (next_position.0 + y as isize) < 0 || (next_position.1 + x as isize) < 0 {
+                        return false;
+                    } else if *self.to_absolute_from(board, next_position, y, x) != Cell::Empty {
                         let local_pos = Self::coord_add_i16_to_usize((y, x), (y_change, x_change));
-                        if local_pos.0 < matrix.len() && local_pos.1 < matrix[local_pos.0].len() {
-                            if matrix[local_pos.0][local_pos.1] == 0 {
+                        if local_pos.0 < self.matrix.len()  && local_pos.1 < self.matrix[local_pos.0].len() {
+                            if self.matrix[local_pos.0][local_pos.1] == 0 {
                                 self.status = BlockStatus::Frozen;
-                                return false
-                            } 
+                                return false;
+                            }
                         } else {
-                            return false
+                            self.status = BlockStatus::Frozen;
+                            return false;
                         }
                     }
                 }
             }
         }
-        return true
+        return true;
     }
 
     fn can_rotate(&mut self, board: &mut Board, matrix: &[[i32; 4]; 4]) -> bool {
         if self.status != BlockStatus::Moving {
-            return false
+            return false;
         }
-        // checks if the block can move 
+        // checks if the block can move
         for y in 0..matrix.len() {
             for x in 0..matrix[y].len() {
                 if matrix[y][x] == 1 {
-                    if self.position.0 + y as isize >= board::HEIGHT as isize{  
-                        return false
-                    } else if self.position.1 >= board::WIDTH as isize ||(self.position.1 + x as isize) >= board::WIDTH as isize {
-                        return false
-                    } else if *self.to_absolute(board, y, x) != Cell::Empty {
-                        if self.matrix[y][x] == 0 {
-                            return false
-                        }
+                    if self.position.0 + y as isize >= board::HEIGHT as isize {
+                        return false;
+                    } else if self.position.1 >= board::WIDTH as isize || (self.position.1 + x as isize) >= board::WIDTH as isize {
+                        return false;
+                    } else if (self.position.0 + y as isize) < 0 || (self.position.1 + x as isize) < 0 {
+                        return false;
+                    } else if *self.to_absolute(board, y, x) != Cell::Empty && self.matrix[y][x] == 0  {
+                        return false;
                     }
                 }
             }
@@ -121,15 +132,24 @@ impl Block {
         return true;
     }
 
-    fn coord_add_i16_to_usize(u: (usize, usize), i: (i16, i16) ) -> (usize, usize){
+    fn coord_add_i16_to_usize(u: (usize, usize), i: (i16, i16)) -> (usize, usize) {
         (
             (u.0 as i64 + i.0 as i64) as usize,
-            (u.1 as i64 + i.1 as i64) as usize
+            (u.1 as i64 + i.1 as i64) as usize,
         )
     }
 
-    fn to_absolute<'a> (& mut self, board: &'a mut Board, y: usize, x: usize ) -> &'a mut Cell {
-        return &mut board.data[(self.position.0 + y as isize) as usize][(self.position.1 + x as isize) as usize];
+    fn to_absolute<'a>(&mut self, board: &'a mut Board, y: usize, x: usize) -> &'a mut Cell {
+        return &mut board.data[(self.position.0 + y as isize) as usize]
+            [(self.position.1 + x as isize) as usize];
+    }
+
+    fn to_absolute_from<'a>(
+        &mut self, board: &'a mut Board,
+        position: (isize, isize),
+        y: usize, x: usize,
+    ) -> &'a mut Cell {
+        return &mut board.data[(position.0 + y as isize) as usize][(position.1 + x as isize) as usize];
     }
 
     pub fn move_sideways(&mut self, board: &mut Board, x_change: i16) {

@@ -7,16 +7,15 @@ use crate::window;
 pub const WIDTH: usize = 10;
 pub const HEIGHT: usize = 16;
 
-
 #[derive(PartialEq)]
 pub struct Board {
     pub data: Vec<Vec<Cell>>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum Cell {
     Empty,
-    Color(Color)
+    Color(Color),
 }
 
 impl Cell {
@@ -39,7 +38,13 @@ impl Board {
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
                 if self.data[y][x] != Cell::Empty {
-                    window::draw_block(self.data[y][x].get_color().unwrap(), x as f64, y as f64, context, g2d);
+                    window::draw_block(
+                        self.data[y][x].get_color().unwrap(),
+                        x as f64,
+                        y as f64,
+                        context,
+                        g2d,
+                    );
                 };
             }
         }
