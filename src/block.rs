@@ -41,32 +41,41 @@ impl Block {
         }
     }
 
+    // erases the block from the board
+    fn erase_from_board(&mut self, board: &mut Board) {
+        for y in 0..self.matrix.len() {
+            for x in 0..self.matrix[y].len() {
+                if self.matrix[y][x] == 1 {
+                    *self.to_absolute(board, y, x) = Cell::Empty;
+                }
+            }
+        }
+    }
+
+    // add the block from the board
+    fn add_to_board(&mut self, board: &mut Board, position: (isize, isize)) {
+        for y in 0..self.matrix.len() {
+            for x in 0..self.matrix[y].len() {
+                if self.matrix[y][x] == 1 {
+                    *self.to_absolute_from(board, position, y, x) =
+                        Cell::Color(self.color.to_color())
+                }
+            }
+        }
+    }
+
     pub fn update(&mut self, board: &mut Board, y_change: i16, x_change: i16) {
         let next_position = (
             self.position.0 + y_change as isize,
             self.position.1 + x_change as isize,
         );
-
+        // checks if the position is valid to move to
         if self.can_move(board, next_position, y_change, x_change) {
             // erases the old position
-            for y in 0..self.matrix.len() {
-                for x in 0..self.matrix[y].len() {
-                    if self.matrix[y][x] == 1 {
-                        *self.to_absolute(board, y, x) = Cell::Empty;
-                    }
-                }
-            }
-
+            self.erase_from_board(board);
             // moves to the new position
-            for y in 0..self.matrix.len() {
-                for x in 0..self.matrix[y].len() {
-                    if self.matrix[y][x] == 1 {
-                        *self.to_absolute_from(board, next_position, y, x) =
-                            Cell::Color(self.color.to_color())
-                    }
-                }
-            }
-
+            self.add_to_board(board, next_position);
+            // change the position
             self.position = next_position;
         }
     }
@@ -86,19 +95,16 @@ impl Block {
                     if (next_position.0 + y as isize) as usize >= board::HEIGHT {
                         self.status = BlockStatus::Frozen;
                         return false;
-                    } else if next_position.1 >= board::WIDTH as isize || (next_position.1 + x as isize) >= board::WIDTH as isize {
-                        return false;
-                    } else if (next_position.0 + y as isize) < 0 || (next_position.1 + x as isize) < 0 {
+                    } else if Block::is_out_of_bounds(next_position, y, x) {
                         return false;
                     } else if *self.to_absolute_from(board, next_position, y, x) != Cell::Empty {
                         let local_pos = Self::coord_add_i16_to_usize((y, x), (y_change, x_change));
-                        if local_pos.0 < self.matrix.len()  && local_pos.1 < self.matrix[local_pos.0].len() {
+                        if local_pos.0 < self.matrix.len() && local_pos.1 < self.matrix[local_pos.0].len() {
                             if self.matrix[local_pos.0][local_pos.1] == 0 {
                                 self.status = BlockStatus::Frozen;
                                 return false;
                             }
                         } else {
-                            self.status = BlockStatus::Frozen;
                             return false;
                         }
                     }
@@ -108,20 +114,24 @@ impl Block {
         return true;
     }
 
+    fn is_out_of_bounds( position: (isize, isize), y: usize, x: usize) -> bool {
+        position.0 + y as isize >= board::HEIGHT as isize
+            || position.1 >= board::WIDTH as isize
+            || (position.1 + x as isize) >= board::WIDTH as isize
+            || (position.0 + y as isize) < 0
+            || (position.1 + x as isize) < 0
+    }
+
     fn can_rotate(&mut self, board: &mut Board, matrix: &[[i32; 4]; 4]) -> bool {
         if self.status != BlockStatus::Moving {
             return false;
         }
-        // checks if the block can move
+        // checks if the block can be rotated (yes this is different than moving)
         for y in 0..matrix.len() {
             for x in 0..matrix[y].len() {
                 if matrix[y][x] == 1 {
-                    if self.position.0 + y as isize >= board::HEIGHT as isize {
-                        return false;
-                    } else if self.position.1 >= board::WIDTH as isize || (self.position.1 + x as isize) >= board::WIDTH as isize {
-                        return false;
-                    } else if (self.position.0 + y as isize) < 0 || (self.position.1 + x as isize) < 0 {
-                        return false;
+                    if Block::is_out_of_bounds(self.position, y, x) {
+                        return false
                     } else if *self.to_absolute(board, y, x) != Cell::Empty && self.matrix[y][x] == 0  {
                         return false;
                     }
@@ -170,23 +180,14 @@ impl Block {
 
         if self.can_rotate(board, &rotated_matrix) {
             // erases the old position
-            for y in 0..self.matrix.len() {
-                for x in 0..self.matrix[y].len() {
-                    if self.matrix[y][x] == 1 {
-                        *self.to_absolute(board, y, x) = Cell::Empty;
-                    }
-                }
-            }
+            self.erase_from_board(board);
+
+            // changes the matrix to be rotated
+            self.matrix = rotated_matrix;
 
             // moves to the new position
-            for y in 0..rotated_matrix.len() {
-                for x in 0..rotated_matrix[y].len() {
-                    if rotated_matrix[y][x] == 1 {
-                        *self.to_absolute(board, y, x) = Cell::Color(self.color.to_color());
-                    }
-                }
-            }
-            self.matrix = rotated_matrix;
+            self.add_to_board(board, self.position);
+            
         }
     }
 }
