@@ -72,4 +72,25 @@ impl BlockShape {
             ],
         }
     }
+
+    pub fn rotate_matrix(matrix: &mut [[i32; 4]; 4]) {
+        // transpose the matrix
+        for i in 0..4 {
+            for j in i+1..4 {
+                let temp = matrix[i][j];
+                matrix[i][j] = matrix[j][i];
+                matrix[j][i] = temp;
+            }
+        }
+    
+        // flip the matrix horizontally
+        for i in 0..4 {
+            for j in 0..2 {
+                let temp = matrix[i][j];
+                matrix[i][j] = matrix[i][3-j];
+                matrix[i][3-j] = temp;
+            }
+        }
+    }
+    
 }

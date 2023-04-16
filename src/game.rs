@@ -60,7 +60,9 @@ impl Game {
                 self.block.move_down(&mut self.board); 
                 self.waiting_time = 0.0
             },
-            Key::R => {*self = Game::new()},
+            Key::R => {self.block.rotate(&mut self.board)},
+            Key::X => {*self = Game::new()},
+
             _ => {}
         }
     }
