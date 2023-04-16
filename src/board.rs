@@ -40,10 +40,8 @@ impl Board {
                 if self.data[y][x] != Cell::Empty {
                     window::draw_block(
                         self.data[y][x].get_color().unwrap(),
-                        x as f64,
-                        y as f64,
-                        context,
-                        g2d,
+                        x as f64, y as f64,
+                        context, g2d,
                     );
                 };
             }

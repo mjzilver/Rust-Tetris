@@ -5,6 +5,7 @@ use piston_window::types::Color;
 use piston_window::*;
 
 const BACK_COLOR: Color = [0.5, 0.5, 0.5, 1.0];
+const GAME_OVER_COLOR: Color = [0.8, 0.0, 0.0, 0.8];
 const MOVING_PERIOD: f64 = 0.5;
 const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * window::BLOCK_SIZE;
 const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * window::BLOCK_SIZE;
@@ -13,17 +14,19 @@ pub struct Game {
     board: Board,
     block: Block,
     waiting_time: f64,
+    game_over: bool,
 }
 
 impl Game {
     pub fn new() -> Game {
         let mut board = board::Board::new();
-        let block = Block::new(&mut board, (0, (board::WIDTH / 2) - 1));
+        let block = Block::new(&mut board, (0, (board::WIDTH / 2) - 1)).unwrap();
 
         Game {
             board,
             block,
             waiting_time: 0.0,
+            game_over: false
         }
     }
 
@@ -42,6 +45,9 @@ impl Game {
             window.draw_2d(&event, |context, g2d, _| {
                 clear(BACK_COLOR, g2d);
                 self.board.draw(&context, g2d);
+                if self.game_over {
+                    window::draw_rect(GAME_OVER_COLOR, 0.0, 0.0, SCREEN_WIDTH, SCREEN_HEIGHT , &context, g2d)
+                }
             });
             event.update(|arg| self.update(arg));
         }
@@ -65,9 +71,12 @@ impl Game {
     fn update(&mut self, arg: &UpdateArgs) {
         self.waiting_time += arg.dt;
 
-        if self.waiting_time > MOVING_PERIOD {
+        if self.waiting_time > MOVING_PERIOD && !self.game_over {
             if self.block.status == BlockStatus::Frozen {
-                self.block = Block::new(&mut self.board, (0, (board::WIDTH / 2) - 1));
+                match Block::new(&mut self.board, (0, (board::WIDTH / 2) - 1)) {
+                    Some(block) => self.block = block,
+                    None => self.game_over = true,
+                }
             } else {
                 self.block.move_down(&mut self.board);
             }

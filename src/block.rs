@@ -18,26 +18,25 @@ pub enum BlockStatus {
 }
 
 impl Block {
-    pub fn new(board: &mut Board, position: (usize, usize)) -> Block {
+    pub fn new(board: &mut Board, position: (usize, usize)) -> Option<Block> {
         let shape = BlockShape::random();
         let color = BlockColor::random();
         let matrix = shape.get_shape();
         let self_position = (position.0 as isize, position.1 as isize);
 
-        for y in 0..matrix.len() {
-            for x in 0..matrix[y].len() {
-                if matrix[y][x] == 1 {
-                    board.data[position.0 + y][position.1 + x] = Cell::Color(color.to_color());
-                }
-            }
-        }
-
-        Block {
+        let mut block = Block {
             shape,
             matrix,
             color,
             status: BlockStatus::Moving,
             position: self_position,
+        };
+
+        if !block.has_collision(board, self_position, 0, 0) {
+            block.add_to_board(board, self_position);
+            Some(block)
+        } else {
+            None
         }
     }
 
@@ -52,7 +51,7 @@ impl Block {
         }
     }
 
-    // add the block from the board
+    // add the block to the board
     fn add_to_board(&mut self, board: &mut Board, position: (isize, isize)) {
         for y in 0..self.matrix.len() {
             for x in 0..self.matrix[y].len() {
@@ -114,13 +113,18 @@ impl Block {
         true
     }
 
-    fn is_out_of_bounds( position: (isize, isize), y: usize, x: usize) -> bool {
+    fn is_out_of_bounds(position: (isize, isize), y: usize, x: usize) -> bool {
         position.0 + y as isize >= board::HEIGHT as isize
             || position.1 >= board::WIDTH as isize
             || (position.1 + x as isize) >= board::WIDTH as isize
             || (position.0 + y as isize) < 0
             || (position.1 + x as isize) < 0
     }
+
+    fn has_collision(&mut self, board: &mut Board, position: (isize, isize), y: usize, x: usize) -> bool {
+        *self.to_absolute_from(board, position, y, x) != Cell::Empty && self.matrix[y][x] == 0
+    }
+
 
     fn can_rotate(&mut self, board: &mut Board, matrix: &[[i32; 4]; 4]) -> bool {
         if self.status != BlockStatus::Moving {
