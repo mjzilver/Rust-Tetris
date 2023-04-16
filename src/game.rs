@@ -18,7 +18,7 @@ pub struct Game {
 impl Game {
     pub fn new() -> Game {
         Game { board: board::Board::new(), 
-            block: Block::new((0, 0)),
+            block: Block::new((0, (board::WIDTH / 2) - 1 as usize)),
             waiting_time: 0.0 }
     }
 

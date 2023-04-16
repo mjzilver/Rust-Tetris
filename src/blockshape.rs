@@ -1,3 +1,6 @@
+use rand::Rng;
+
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum BlockShape {
     IBlock,
     JBlock,
@@ -20,6 +23,20 @@ impl BlockShape {
             "Z" => BlockShape::ZBlock,
             _ => panic!("Invalid block shape!"),
         }
+    }
+
+    pub fn random() -> Self {
+        let blocks = [
+            BlockShape::IBlock,
+            BlockShape::JBlock,
+            BlockShape::LBlock,
+            BlockShape::OBlock,
+            BlockShape::SBlock,
+            BlockShape::TBlock,
+            BlockShape::ZBlock,
+        ];
+        let mut rng = rand::thread_rng();
+        blocks[rng.gen_range(0..blocks.len())]
     }
 
     pub fn get_shape(&self) -> [[i32; 4]; 4] {
