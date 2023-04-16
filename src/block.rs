@@ -14,10 +14,22 @@ pub enum BlockStatus {
 }
 
 impl Block {
-    pub fn new(position: (usize, usize)) -> Block {
+    pub fn new(board: &mut Board, position: (usize, usize)) -> Block {
+        let shape = BlockShape::random();
+        let color = BlockColor::random();
+        let matrix = shape.get_shape();
+
+        for y in 0..matrix.len() {
+            for x in 0..matrix[y].len() {
+                if matrix[y][x] == 1 {
+                    board.data[position.0 + y][position.1 + x] = Cell::Color(color.to_color());
+                }
+            }
+        }
+
         Block{
-            shape: BlockShape::random(),
-            color: BlockColor::random(),
+            shape: shape,
+            color: color,
             status: BlockStatus::Moving,
             position
         }
@@ -43,6 +55,8 @@ impl Block {
                                 board.data[y + self.position.0][x + self.position.1] = Cell::Empty;
                             }
                         }
+
+
                     }
                 }
             }

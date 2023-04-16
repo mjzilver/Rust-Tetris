@@ -17,8 +17,11 @@ pub struct Game {
 
 impl Game {
     pub fn new() -> Game {
-        Game { board: board::Board::new(), 
-            block: Block::new((0, (board::WIDTH / 2) - 1 as usize)),
+        let mut board = board::Board::new();
+        let block = Block::new(&mut board, (0, (board::WIDTH / 2) - 1 as usize));
+
+        Game { board: board, 
+            block: block,
             waiting_time: 0.0 }
     }
 
@@ -64,7 +67,7 @@ impl Game {
         self.waiting_time += arg.dt;
     
         if self.waiting_time > MOVING_PERIOD {
-            self.block.move_down(&mut self.board);
+            //self.block.move_down(&mut self.board);
             
             self.waiting_time = 0.0;
         }
