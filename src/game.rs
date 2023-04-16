@@ -1,6 +1,6 @@
-use crate::block::{Block};
+use crate::block::Block;
 use crate::board::{self, Board};
-use crate::{window};
+use crate::window;
 use piston_window::types::Color;
 use piston_window::*;
 
@@ -51,7 +51,10 @@ impl Game {
         match key {
             Key::A => self.block.move_sideways(&mut self.board, -1),
             Key::D => self.block.move_sideways(&mut self.board, 1),
-            Key::S => self.block.move_down(&mut self.board),
+            Key::S => {
+                self.block.move_down(&mut self.board); 
+                self.waiting_time = 0.0
+            },
             Key::R => {*self = Game::new()},
             _ => {}
         }

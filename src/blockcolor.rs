@@ -1,5 +1,5 @@
 use piston_window::types::Color;
-use rand::{Rng};
+use rand::Rng;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum BlockColor {

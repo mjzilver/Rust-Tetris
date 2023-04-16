@@ -12,19 +12,6 @@ pub enum BlockShape {
 }
 
 impl BlockShape {
-    pub fn new(shape: &str) -> BlockShape {
-        match shape {
-            "I" => BlockShape::IBlock,
-            "J" => BlockShape::JBlock,
-            "L" => BlockShape::LBlock,
-            "O" => BlockShape::OBlock,
-            "S" => BlockShape::SBlock,
-            "T" => BlockShape::TBlock,
-            "Z" => BlockShape::ZBlock,
-            _ => panic!("Invalid block shape!"),
-        }
-    }
-
     pub fn random() -> Self {
         let blocks = [
             BlockShape::IBlock,
