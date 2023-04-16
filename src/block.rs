@@ -6,7 +6,7 @@ pub struct Block {
     matrix: [[i32; 4]; 4],
     pub color: BlockColor,
     pub status: BlockStatus,
-    pub position: (usize, usize),
+    pub position: (isize, isize),
 }
 #[derive(PartialEq)]
 pub enum BlockStatus {
@@ -19,10 +19,12 @@ impl Block {
         let shape = BlockShape::random();
         let color = BlockColor::random();
         let matrix = shape.get_shape();
+        let self_position = (position.0 as isize, position.1 as isize);
 
         for y in 0..matrix.len() {
             for x in 0..matrix[y].len() {
                 if matrix[y][x] == 1 {
+                    
                     board.data[position.0 + y][position.1 + x] = Cell::Color(color.to_color());
                 }
             }
@@ -33,19 +35,19 @@ impl Block {
             matrix,
             color,
             status: BlockStatus::Moving,
-            position
+            position: self_position
         }
     }
 
     pub fn update(&mut self, board: &mut Board, y_change: i16, x_change: i16) {
-        let next_position = Self::coord_add_i16_to_usize(self.position, (y_change, x_change));
+        let next_position = (self.position.0 + y_change as isize, self.position.1 + x_change as isize);
 
         if self.can_move(board, &self.matrix.clone(), next_position, y_change, x_change) {
             // erases the old position
             for y in 0..self.matrix.len() {
                 for x in 0..self.matrix[y].len() {
                     if self.matrix[y][x] == 1 {
-                        board.data[y + self.position.0][x + self.position.1] = Cell::Empty;
+                        *self.to_absolute(board, y, x) = Cell::Empty;
                     }
                 }
             }
@@ -54,7 +56,7 @@ impl Block {
             for y in 0..self.matrix.len() {
                 for x in 0..self.matrix[y].len() {
                     if self.matrix[y][x] == 1 {
-                        board.data[y + next_position.0][x + next_position.1] = Cell::Color(self.color.to_color());
+                        *self.to_absolute(board, y, x) = Cell::Color(self.color.to_color())
                     }
                 }
             }
@@ -64,7 +66,7 @@ impl Block {
     }
 
     fn can_move(&mut self, board: &mut Board, matrix: &[[i32; 4]; 4], 
-    next_position: (usize, usize),  y_change: i16, x_change: i16)
+    next_position: (isize, isize),  y_change: i16, x_change: i16)
         -> bool { 
         if self.status != BlockStatus::Moving {
             return false
@@ -73,12 +75,12 @@ impl Block {
         for y in 0..matrix.len() {
             for x in 0..matrix[y].len() {
                 if matrix[y][x] == 1 {
-                    if next_position.0 + y >= board::HEIGHT {  
+                    if (next_position.0 + y as isize) as usize >= board::HEIGHT {  
                         self.status = BlockStatus::Frozen;
                         return false
-                    } else if next_position.1 >= board::WIDTH ||(next_position.1 + x) >= board::WIDTH {
+                    } else if next_position.1 >= board::WIDTH as isize||(next_position.1 + x as isize) >= board::WIDTH as isize{
                         return false
-                    } else if board.data[next_position.0 + y][next_position.1 + x] != Cell::Empty {
+                    } else if *self.to_absolute(board, y, x) != Cell::Empty {
                         let local_pos = Self::coord_add_i16_to_usize((y, x), (y_change, x_change));
                         if local_pos.0 < matrix.len() && local_pos.1 < matrix[local_pos.0].len() {
                             if matrix[local_pos.0][local_pos.1] == 0 {
@@ -103,11 +105,11 @@ impl Block {
         for y in 0..matrix.len() {
             for x in 0..matrix[y].len() {
                 if matrix[y][x] == 1 {
-                    if self.position.0 + y >= board::HEIGHT {  
+                    if self.position.0 + y as isize >= board::HEIGHT as isize{  
                         return false
-                    } else if self.position.1 >= board::WIDTH ||(self.position.1 + x) >= board::WIDTH {
+                    } else if self.position.1 >= board::WIDTH as isize ||(self.position.1 + x as isize) >= board::WIDTH as isize {
                         return false
-                    } else if board.data[self.position.0 + y][self.position.1 + x] != Cell::Empty {
+                    } else if *self.to_absolute(board, y, x) != Cell::Empty {
                         if self.matrix[y][x] == 0 {
                             return false
                         }
@@ -124,6 +126,10 @@ impl Block {
             (u.0 as i64 + i.0 as i64) as usize,
             (u.1 as i64 + i.1 as i64) as usize
         )
+    }
+
+    fn to_absolute<'a> (& mut self, board: &'a mut Board, y: usize, x: usize ) -> &'a mut Cell {
+        return &mut board.data[(self.position.0 + y as isize) as usize][(self.position.1 + x as isize) as usize];
     }
 
     pub fn move_sideways(&mut self, board: &mut Board, x_change: i16) {
@@ -147,7 +153,7 @@ impl Block {
             for y in 0..self.matrix.len() {
                 for x in 0..self.matrix[y].len() {
                     if self.matrix[y][x] == 1 {
-                        board.data[y + self.position.0][x + self.position.1] = Cell::Empty;
+                        *self.to_absolute(board, y, x) = Cell::Empty;
                     }
                 }
             }
@@ -156,7 +162,7 @@ impl Block {
             for y in 0..rotated_matrix.len() {
                 for x in 0..rotated_matrix[y].len() {
                     if rotated_matrix[y][x] == 1 {
-                        board.data[y + self.position.0][x + self.position.1] = Cell::Color(self.color.to_color());
+                        *self.to_absolute(board, y, x) = Cell::Color(self.color.to_color());
                     }
                 }
             }
