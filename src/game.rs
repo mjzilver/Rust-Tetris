@@ -1,11 +1,11 @@
-use crate::block::Block;
+use crate::block::{Block};
 use crate::board::{self, Board};
 use crate::{window};
 use piston_window::types::Color;
 use piston_window::*;
 
 const BACK_COLOR: Color = [0.5, 0.5, 0.5, 1.0];
-const MOVING_PERIOD: f64 = 0.1;
+const MOVING_PERIOD: f64 = 0.5;
 const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * window::BLOCK_SIZE;
 const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * window::BLOCK_SIZE;
 
@@ -49,10 +49,9 @@ impl Game {
 
     fn input (&mut self, key: &Key) {
         match key {
-            Key::W => {},
-            Key::A => {},
-            Key::S => {},
-            Key::D => {},
+            Key::A => self.block.move_sideways(&mut self.board, -1),
+            Key::D => self.block.move_sideways(&mut self.board, 1),
+            Key::S => self.block.move_down(&mut self.board),
             Key::R => {*self = Game::new()},
             _ => {}
         }
@@ -62,7 +61,8 @@ impl Game {
         self.waiting_time += arg.dt;
     
         if self.waiting_time > MOVING_PERIOD {
-            self.block.update(&mut self.board);
+            self.block.move_down(&mut self.board);
+            
             self.waiting_time = 0.0;
         }
     }
