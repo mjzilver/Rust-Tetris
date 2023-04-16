@@ -1,11 +1,11 @@
-use crate::block::Block;
+use crate::block::{Block, BlockStatus};
 use crate::board::{self, Board};
 use crate::window;
 use piston_window::types::Color;
 use piston_window::*;
 
 const BACK_COLOR: Color = [0.5, 0.5, 0.5, 1.0];
-const MOVING_PERIOD: f64 = 0.5;
+const MOVING_PERIOD: f64 = 0.1;
 const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * window::BLOCK_SIZE;
 const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * window::BLOCK_SIZE;
 
@@ -20,9 +20,11 @@ impl Game {
         let mut board = board::Board::new();
         let block = Block::new(&mut board, (0, (board::WIDTH / 2) - 1 as usize));
 
-        Game { board: board, 
-            block: block,
-            waiting_time: 0.0 }
+        Game { 
+            board, 
+            block,
+            waiting_time: 0.0 
+        }
     }
 
     pub fn start_loop(&mut self) {
@@ -67,7 +69,11 @@ impl Game {
         self.waiting_time += arg.dt;
     
         if self.waiting_time > MOVING_PERIOD {
-            //self.block.move_down(&mut self.board);
+            if self.block.status == BlockStatus::Frozen {
+                self.block = Block::new(&mut self.board, (0, (board::WIDTH / 2) - 1 as usize));
+            } else {
+                self.block.move_down(&mut self.board);
+            }
             
             self.waiting_time = 0.0;
         }
