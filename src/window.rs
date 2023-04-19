@@ -24,3 +24,7 @@ pub fn draw_rect(color: Color, x: f64, y: f64, x2: f64, y2: f64, context: &Conte
         g2d,
     )
 }
+
+pub(crate) fn draw_image() {
+    todo!()
+}

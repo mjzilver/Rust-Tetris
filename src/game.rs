@@ -16,7 +16,14 @@ pub struct Game {
     block: Block,
     waiting_time: f64,
     score: u16,
-    game_over: bool,
+    status: GameStatus
+}
+
+#[derive(PartialEq)]
+pub enum GameStatus {
+    Paused,
+    Playing,
+    GameOver,
 }
 
 impl Game {
@@ -29,7 +36,7 @@ impl Game {
             block,
             score: 0,
             waiting_time: 0.0,
-            game_over: false
+            status: GameStatus::Playing
         }
     }
 
@@ -48,8 +55,10 @@ impl Game {
             window.draw_2d(&event, |context, g2d, _| {
                 clear(BACK_COLOR, g2d);
                 self.board.draw(&context, g2d);
-                if self.game_over {
+                if self.status == GameStatus::GameOver {
                     window::draw_rect(GAME_OVER_COLOR, 0.0, 0.0, SCREEN_WIDTH, SCREEN_HEIGHT , &context, g2d)
+                } else if self.status == GameStatus::Paused {
+                    window::draw_image()
                 }
             });
             event.update(|arg| self.update(arg));
@@ -63,6 +72,13 @@ impl Game {
             Key::S => self.block.move_down(&mut self.board),
             Key::R => self.block.rotate(&mut self.board),
             Key::X => *self = Game::new(),
+            Key::P => { 
+                if self.status == GameStatus::Paused {
+                    self.status = GameStatus::Playing
+                } else { 
+                    self.status = GameStatus::Paused 
+                }
+             },
             _ => {}
         }
     }
@@ -70,13 +86,13 @@ impl Game {
     fn update(&mut self, arg: &UpdateArgs) {
         self.waiting_time += arg.dt;
 
-        if self.waiting_time > MOVING_PERIOD && !self.game_over {
+        if self.waiting_time > MOVING_PERIOD && self.status == GameStatus::Playing {
             if self.block.status == BlockStatus::Frozen {
                 self.board.update(&mut self.score);
 
                 match Block::next(&mut self.board, BLOCK_SPAWN_POSITION, &self.block) {
                     Some(block) => self.block = block,
-                    None => self.game_over = true,
+                    None => self.status = GameStatus::GameOver,
                 }
             } else {
                 self.block.move_down(&mut self.board);
