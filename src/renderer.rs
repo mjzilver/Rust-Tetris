@@ -1,14 +1,14 @@
 use std::path::Path;
 use std::collections::HashMap;
-use gfx_device_gl::Resources;
-use piston_window::{types::Color, rectangle, image, Context, G2d, PistonWindow, TextureContext, Texture, Flip, TextureSettings, Transformed};
+use gfx_device_gl::{Resources};
+use piston_window::{types::Color, rectangle, image, Context, G2d, PistonWindow, TextureContext, Texture, Flip, TextureSettings, Transformed, Text, color::BLACK, Glyphs};
 
 use crate::game;
 
 pub const BLOCK_SIZE: f64 = 25.0;
 const BLOCK_BORDER_SIZE: f64 = 1.0;
-const IMAGE_WIDTH: f64 = 200.0;
-const IMAGE_HEIGHT: f64 = 80.0;
+const MENU_IMAGE_WIDTH: f64 = 200.0;
+const MENU_IMAGE_HEIGHT: f64 = 80.0;
 
 pub struct Renderer {
    textures: HashMap<String, Texture<Resources>>,
@@ -16,41 +16,51 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new(window: &mut PistonWindow) -> Self {
-        let mut texture_context = TextureContext {
+        let mut texture_context: TextureContext<gfx_device_gl::Factory, Resources, gfx_device_gl::CommandBuffer> = TextureContext {
             factory: window.factory.clone(),
             encoder: window.factory.create_command_buffer().into(),
         };
 
-        let mut textures = HashMap::new();
+        let textures = HashMap::new();
+        let mut renderer = Renderer { textures };
+
+        renderer.add_image_file("paused", &mut texture_context);
+        renderer.add_image_file("game_over", &mut texture_context);
+
+        renderer
+    }
+
+    fn add_image_file(&mut self, name: &str, texture_context: &mut TextureContext<gfx_device_gl::Factory, Resources, gfx_device_gl::CommandBuffer> ) {
+        let filename: &str = &(name.to_owned() + ".png");
 
         let texture = Texture::from_path(
-            &mut texture_context,
-            Path::new("paused.png"),
+            texture_context,
+            Path::new(filename),
             Flip::None,
             &TextureSettings::new(),
         )
         .expect("Failed to load texture");
 
-        textures.insert(String::from("paused"), texture);
-
-        let texture = Texture::from_path(
-            &mut texture_context,
-            Path::new("game_over.png"),
-            Flip::None,
-            &TextureSettings::new(),
-        )
-        .expect("Failed to load texture");
-
-        textures.insert(String::from("game_over"), texture);
-
-        Renderer { textures }
+        self.textures.insert(String::from(name), texture);
     }
 
     pub fn draw_image(&self, name: &str, context: &Context, g2d: &mut G2d) {
-        let x = (game::SCREEN_WIDTH - IMAGE_WIDTH) / 2.0;
-        let y = (game::SCREEN_HEIGHT - IMAGE_HEIGHT) / 2.0;
+        let x = (game::SCREEN_WIDTH - MENU_IMAGE_WIDTH) / 2.0;
+        let y = (game::SCREEN_HEIGHT - MENU_IMAGE_HEIGHT) / 2.0;
 
        image(self.textures.get(name).expect("Image failed to load!"), context.transform.trans(x, y), g2d);
+    }
+
+    pub fn draw_text(&self, text: &str, glyphs: &mut Glyphs, context: &Context, g2d: &mut G2d) {
+        Text::new_color(BLACK, 20)
+        .draw(
+            text,
+            glyphs,
+            &context.draw_state,
+            context.transform.trans(10.0, 30.0),
+            g2d,
+        )
+        .unwrap();
     }
 }
 

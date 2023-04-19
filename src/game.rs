@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::block::{Block, BlockStatus};
 use crate::board::{self, Board};
 use crate::renderer::{self, Renderer};
@@ -49,15 +51,18 @@ impl Game {
             .expect("Window failed to load");
 
         let renderer = Renderer::new(&mut window);
-  
+        let mut glyphs = window.load_font(Path::new("gillsans.ttf")).expect("Could not load font");
+
         while let Some(event) = window.next() {
             if let Some(Button::Keyboard(key)) = event.release_args() {
                 self.input(&key)
             }
 
-            window.draw_2d(&event, |context, g2d, _| {
+            window.draw_2d(&event, |context, g2d, device| {
                 clear(BACK_COLOR, g2d);
                 self.board.draw(&context, g2d);
+                let text = format!("Current score: {}", self.score);
+                renderer.draw_text(&text, &mut glyphs, &context, g2d);
                
                 match self.status {
                     GameStatus::GameOver => {
@@ -69,8 +74,9 @@ impl Game {
                     },
                     _ => {}
                 }
+                glyphs.factory.encoder.flush(device);
             });
-            event.update(|arg| self.update(arg));
+            event.update(|update_args: &UpdateArgs| self.update(update_args));
         }
     }
 
@@ -92,8 +98,8 @@ impl Game {
         }
     }
 
-    fn update(&mut self, arg: &UpdateArgs) {
-        self.waiting_time += arg.dt;
+    fn update(&mut self, update_args: &UpdateArgs) {
+        self.waiting_time += update_args.dt;
 
         if self.waiting_time > MOVING_PERIOD && self.status == GameStatus::Playing {
             if self.block.status == BlockStatus::Frozen {
