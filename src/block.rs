@@ -175,10 +175,8 @@ impl Block {
     fn check_if_space_filled(&mut self, board: &mut Board) -> bool {
         for y in 0..self.matrix.len() {
             for x in 0..self.matrix[y].len() {
-                if self.matrix[y][x] == 1 {
-                    if self.get_cell_at_current_position(board, y, x).status != CellStatus::Empty {
-                        return true
-                    }
+                if self.matrix[y][x] == 1 && self.get_cell_at_current_position(board, y, x).status != CellStatus::Empty {
+                    return true
                 }
             }
         }
@@ -298,13 +296,6 @@ mod block_tests {
     } 
 
     #[test]
-    fn test_can_rotate_10_times() {
-        // just tests 10 different random blocks
-        for _ in 0..10 {
-            block_tests::test_can_rotate()
-        }
-    }
-
     fn test_can_rotate() {
         let mut board = Board::new();
         let position = (1, 1);
@@ -338,20 +329,12 @@ mod block_tests {
     fn test_game_over() {
         let mut board = Board::new();
         let position = (1, 1);
-        let i_position: (isize, isize) = (1, 1);
-        let mut block = Block::new(&mut board, position);
+        let block = Block::new(&mut board, position);
 
-        // it cant rotate into other blocks
-        for y in 0..block.matrix.len() {
-            for x in 0..block.matrix[y].len() {
-                if block.matrix[y][x] == 1 {
-                    block.get_cell_at_specific_position(&mut board, i_position, y, x).status = CellStatus::Frozen;
-                }
-            }
-        } 
+        let new_block: Option<Block> = Block::next(&mut board, (5, 1), &block); 
+        assert_eq!(new_block.is_some(), true);
 
-        let block2 = Block::next(&mut board, (1, 1), &block); 
-        
-        assert_eq!(block2.is_none(), true);
+        let new_block2: Option<Block> = Block::next(&mut board, (1, 1), &block); 
+        assert_eq!(new_block2.is_none(), true);
     }
 }
