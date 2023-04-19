@@ -26,6 +26,24 @@ impl BlockShape {
         blocks[rng.gen_range(0..blocks.len())]
     }
 
+    pub fn random_except(excluded_shape: BlockShape) -> BlockShape {
+        let blocks = [
+            BlockShape::I,
+            BlockShape::J,
+            BlockShape::L,
+            BlockShape::O,
+            BlockShape::S,
+            BlockShape::T,
+            BlockShape::Z,
+        ];
+        let mut rng = rand::thread_rng();
+        let mut index = rng.gen_range(0..blocks.len());
+        while blocks[index] == excluded_shape {
+            index = rng.gen_range(0..blocks.len());
+        }
+        blocks[index]
+    }    
+
     pub fn get_shape(&self) -> [[i32; 4]; 4] {
         match *self {
             BlockShape::I => [

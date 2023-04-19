@@ -18,27 +18,44 @@ pub enum BlockStatus {
 }
 
 impl Block {
-    pub fn new(board: &mut Board, position: (usize, usize)) -> Option<Block> {
+    pub fn new(board: &mut Board, position: (isize, isize)) -> Block {
         let shape = BlockShape::random();
         let color = BlockColor::random();
         let matrix = shape.get_shape();
-        let self_position = (position.0 as isize, position.1 as isize);
 
         let mut block = Block {
             shape,
             matrix,
             color,
             status: BlockStatus::Moving,
-            position: self_position,
+            position: position,
         };
 
-        if !block.check_if_space_filled(board, self_position) {
-            block.add_to_board(board, self_position);
+        block.add_to_board(board, position);
+        return block;
+    }
+
+    pub fn next(board: &mut Board, position: (isize, isize), old_block: &Block) -> Option<Block> {
+        let shape = BlockShape::random_except(old_block.shape);
+        let color = BlockColor::next_color(old_block.color);
+        let matrix = shape.get_shape();
+
+        let mut block = Block {
+            shape,
+            matrix,
+            color,
+            status: BlockStatus::Moving,
+            position,
+        };
+
+        if !block.check_if_space_filled(board) {
+            block.add_to_board(board, position);
             Some(block)
         } else {
             None
         }
     }
+
 
     // erases the block from the board
     fn erase_from_board(&mut self, board: &mut Board) {
@@ -155,11 +172,11 @@ impl Block {
         true
     }
 
-    fn check_if_space_filled(&mut self, board: &mut Board, position: (isize, isize)) -> bool {
+    fn check_if_space_filled(&mut self, board: &mut Board) -> bool {
         for y in 0..self.matrix.len() {
             for x in 0..self.matrix[y].len() {
                 if self.matrix[y][x] == 1 {
-                    if self.get_cell_at_specific_position(board, position, y, x).status != CellStatus::Empty {
+                    if self.get_cell_at_current_position(board, y, x).status != CellStatus::Empty {
                         return true
                     }
                 }
@@ -224,7 +241,7 @@ mod block_tests {
     fn test_new_block() {
         let mut board = Board::new();
         let position = (0, 0);
-        let mut block = Block::new(&mut board, position).unwrap();
+        let mut block = Block::new(&mut board, position);
 
         // check if the block is added to the board
         for y in 0..block.matrix.len() {
@@ -240,7 +257,7 @@ mod block_tests {
     fn test_erase_from_board() {
         let mut board = Board::new();
         let position = (0, 0);
-        let mut block = Block::new(&mut board, position).unwrap();
+        let mut block = Block::new(&mut board, position);
 
         // erase the block from the board
         block.erase_from_board(&mut board);
@@ -259,7 +276,7 @@ mod block_tests {
     fn test_add_to_board() {
         let mut board = Board::new();
         let position = (0, 0);
-        let mut block = Block::new(&mut board, position).unwrap();
+        let mut block = Block::new(&mut board, position);
 
         // erase the block from the board
         block.erase_from_board(&mut board);
@@ -292,7 +309,7 @@ mod block_tests {
         let mut board = Board::new();
         let position = (1, 1);
         let i_position: (isize, isize) = (1, 1);
-        let mut block = Block::new(&mut board, position).unwrap();
+        let mut block = Block::new(&mut board, position);
 
         let mut rotated_matrix: [[i32; 4]; 4] = block.matrix;
         BlockShape::rotate_matrix(&mut rotated_matrix);    
@@ -322,7 +339,7 @@ mod block_tests {
         let mut board = Board::new();
         let position = (1, 1);
         let i_position: (isize, isize) = (1, 1);
-        let mut block = Block::new(&mut board, position).unwrap();
+        let mut block = Block::new(&mut board, position);
 
         // it cant rotate into other blocks
         for y in 0..block.matrix.len() {
@@ -333,7 +350,7 @@ mod block_tests {
             }
         } 
 
-        let block2 = Block::new(&mut board, (1, 1)); 
+        let block2 = Block::next(&mut board, (1, 1), &block); 
         
         assert_eq!(block2.is_none(), true);
     }

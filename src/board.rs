@@ -142,7 +142,7 @@ mod boards_tests {
             [1, 1, 1, 1..] // this row will be completed and removed
         */
         
-        // fills the bottom row 
+        // fills the bottom rows 
         for x in 0..WIDTH {
             board.data[HEIGHT - 1][x] = test_cell.clone();
         }

@@ -6,9 +6,10 @@ use piston_window::*;
 
 const BACK_COLOR: Color = [0.5, 0.5, 0.5, 1.0];
 const GAME_OVER_COLOR: Color = [0.8, 0.0, 0.0, 0.8];
-const MOVING_PERIOD: f64 = 0.5;
+const MOVING_PERIOD: f64 = 0.3;
 const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * window::BLOCK_SIZE;
 const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * window::BLOCK_SIZE;
+const BLOCK_SPAWN_POSITION: (isize, isize) = (0, (board::WIDTH as isize / 2) - 1);
 
 pub struct Game {
     board: Board,
@@ -21,7 +22,7 @@ pub struct Game {
 impl Game {
     pub fn new() -> Game {
         let mut board = board::Board::new();
-        let block = Block::new(&mut board, (0, (board::WIDTH / 2) - 1)).unwrap();
+        let block = Block::new(&mut board, BLOCK_SPAWN_POSITION);
 
         Game {
             board,
@@ -59,13 +60,9 @@ impl Game {
         match key {
             Key::A => self.block.move_sideways(&mut self.board, -1),
             Key::D => self.block.move_sideways(&mut self.board, 1),
-            Key::S => {
-                self.block.move_down(&mut self.board);
-                self.waiting_time = 0.0
-            }
+            Key::S => self.block.move_down(&mut self.board),
             Key::R => self.block.rotate(&mut self.board),
             Key::X => *self = Game::new(),
-
             _ => {}
         }
     }
@@ -77,7 +74,7 @@ impl Game {
             if self.block.status == BlockStatus::Frozen {
                 self.board.update(&mut self.score);
 
-                match Block::new(&mut self.board, (0, (board::WIDTH / 2) - 1)) {
+                match Block::next(&mut self.board, BLOCK_SPAWN_POSITION, &self.block) {
                     Some(block) => self.block = block,
                     None => self.game_over = true,
                 }

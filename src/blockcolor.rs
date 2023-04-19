@@ -40,4 +40,17 @@ impl BlockColor {
         let mut rng = rand::thread_rng();
         colors[rng.gen_range(0..colors.len())]
     }
+
+    pub fn next_color(current_color: BlockColor) -> BlockColor {
+        match current_color {
+            BlockColor::Red => BlockColor::Blue,
+            BlockColor::Blue => BlockColor::Green,
+            BlockColor::Green => BlockColor::Yellow,
+            BlockColor::Yellow => BlockColor::Purple,
+            BlockColor::Purple => BlockColor::Orange,
+            BlockColor::Orange => BlockColor::Cyan,
+            BlockColor::Cyan => BlockColor::Pink,
+            BlockColor::Pink => BlockColor::Red,
+        }
+    }
 }
