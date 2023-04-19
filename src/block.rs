@@ -100,10 +100,15 @@ impl Block {
                         let local_pos = Self::coord_add_i16_to_usize((y, x), (y_change, x_change));
                         if local_pos.0 < self.matrix.len() && local_pos.1 < self.matrix[local_pos.0].len() {
                             if self.matrix[local_pos.0][local_pos.1] == 0 {
-                                self.status = BlockStatus::Frozen;
+                                if y_change >= 1 {
+                                    self.status = BlockStatus::Frozen;
+                                }
                                 return false;
                             }
                         } else {
+                            if y_change >= 1 {
+                                self.status = BlockStatus::Frozen;
+                            }
                             return false;
                         }
                     }
