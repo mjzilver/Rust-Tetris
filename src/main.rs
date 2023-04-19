@@ -1,6 +1,6 @@
 mod game;
 mod board;
-mod window;
+mod renderer;
 mod blockshape;
 mod block;
 mod blockcolor;

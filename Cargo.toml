@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 rand = "*"
 piston_window = "*"
+gfx_device_gl = "*"
 
 [[bin]]
 name = "tetris"

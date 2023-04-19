@@ -28,11 +28,11 @@ impl Block {
             matrix,
             color,
             status: BlockStatus::Moving,
-            position: position,
+            position,
         };
 
         block.add_to_board(board, position);
-        return block;
+        block
     }
 
     pub fn next(board: &mut Board, position: (isize, isize), old_block: &Block) -> Option<Block> {
@@ -180,7 +180,7 @@ impl Block {
                 }
             }
         }
-        return false
+        false
     }
 
     fn coord_add_i16_to_usize(u: (usize, usize), i: (i16, i16)) -> (usize, usize) {

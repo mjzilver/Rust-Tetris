@@ -1,14 +1,15 @@
 use crate::block::{Block, BlockStatus};
 use crate::board::{self, Board};
-use crate::window;
+use crate::renderer::{self, Renderer};
 use piston_window::types::Color;
 use piston_window::*;
+extern crate piston_window;
 
 const BACK_COLOR: Color = [0.5, 0.5, 0.5, 1.0];
 const GAME_OVER_COLOR: Color = [0.8, 0.0, 0.0, 0.8];
 const MOVING_PERIOD: f64 = 0.3;
-const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * window::BLOCK_SIZE;
-const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * window::BLOCK_SIZE;
+pub const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * renderer::BLOCK_SIZE;
+pub const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * renderer::BLOCK_SIZE;
 const BLOCK_SPAWN_POSITION: (isize, isize) = (0, (board::WIDTH as isize / 2) - 1);
 
 pub struct Game {
@@ -47,6 +48,8 @@ impl Game {
             .build()
             .expect("Window failed to load");
 
+        let renderer = Renderer::new(&mut window);
+  
         while let Some(event) = window.next() {
             if let Some(Button::Keyboard(key)) = event.release_args() {
                 self.input(&key)
@@ -55,10 +58,16 @@ impl Game {
             window.draw_2d(&event, |context, g2d, _| {
                 clear(BACK_COLOR, g2d);
                 self.board.draw(&context, g2d);
-                if self.status == GameStatus::GameOver {
-                    window::draw_rect(GAME_OVER_COLOR, 0.0, 0.0, SCREEN_WIDTH, SCREEN_HEIGHT , &context, g2d)
-                } else if self.status == GameStatus::Paused {
-                    window::draw_image()
+               
+                match self.status {
+                    GameStatus::GameOver => {
+                        renderer::draw_rect(GAME_OVER_COLOR, 0.0, 0.0, SCREEN_WIDTH, SCREEN_HEIGHT , &context, g2d);
+                        renderer.draw_image("game_over", &context, g2d);
+                    },
+                    GameStatus::Paused => {
+                        renderer.draw_image("paused", &context, g2d);
+                    },
+                    _ => {}
                 }
             });
             event.update(|arg| self.update(arg));
@@ -75,7 +84,7 @@ impl Game {
             Key::P => { 
                 if self.status == GameStatus::Paused {
                     self.status = GameStatus::Playing
-                } else { 
+                } else if self.status == GameStatus::Playing { 
                     self.status = GameStatus::Paused 
                 }
              },

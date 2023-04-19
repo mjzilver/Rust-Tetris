@@ -14,7 +14,7 @@ pub enum BlockColor {
 }
 
 impl BlockColor {
-    pub fn to_color(&self) -> Color {
+    pub fn to_color(self: &BlockColor) -> Color {
         match self {
             BlockColor::Red => [1.00, 0.00, 0.00, 1.0],
             BlockColor::Blue => [0.00, 0.00, 1.00, 1.0],
@@ -26,6 +26,7 @@ impl BlockColor {
             BlockColor::Pink => [1.00, 0.20, 1.00, 1.0],
         }
     }
+
     pub fn random() -> Self {
         let colors = [
             BlockColor::Red,

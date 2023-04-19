@@ -3,7 +3,7 @@ use piston_window::types::Color;
 use piston_window::Context;
 use piston_window::G2d;
 
-use crate::window;
+use crate::renderer;
 
 pub const WIDTH: usize = 10;
 pub const HEIGHT: usize = 16;
@@ -37,7 +37,7 @@ impl Board {
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
                 if self.data[y][x].status != CellStatus::Empty {
-                    window::draw_block(
+                    renderer::draw_block(
                         self.data[y][x].color,
                         x as f64, y as f64,
                         context, g2d,
