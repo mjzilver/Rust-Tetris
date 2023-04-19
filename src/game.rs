@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::block::{Block, BlockStatus};
 use crate::board::{self, Board};
-use crate::renderer::{self, Renderer};
+use crate::renderer::{self, Renderer, BORDER};
 use piston_window::types::Color;
 use piston_window::*;
 extern crate piston_window;
@@ -13,6 +13,10 @@ const MOVING_PERIOD: f64 = 0.3;
 pub const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * renderer::BLOCK_SIZE;
 pub const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * renderer::BLOCK_SIZE;
 const BLOCK_SPAWN_POSITION: (isize, isize) = (0, (board::WIDTH as isize / 2) - 1);
+const MENU_IMAGE_WIDTH: f64 = 200.0;
+const MENU_IMAGE_HEIGHT: f64 = 80.0;
+const IMAGE_LOCATION_X: f64 = (SCREEN_WIDTH - MENU_IMAGE_WIDTH) / 2.0;
+const IMAGE_LOCATION_Y: f64 = (SCREEN_HEIGHT - MENU_IMAGE_HEIGHT) / 2.0;
 
 pub struct Game {
     board: Board,
@@ -24,6 +28,7 @@ pub struct Game {
 
 #[derive(PartialEq)]
 pub enum GameStatus {
+    Startup,
     Paused,
     Playing,
     GameOver,
@@ -39,12 +44,12 @@ impl Game {
             block,
             score: 0,
             waiting_time: 0.0,
-            status: GameStatus::Playing
+            status: GameStatus::Startup
         }
     }
 
     pub fn start_loop(&mut self) {
-        let mut window: PistonWindow = WindowSettings::new("Tetris", (SCREEN_WIDTH, SCREEN_HEIGHT))
+        let mut window: PistonWindow = WindowSettings::new("Tetris", (SCREEN_WIDTH, SCREEN_HEIGHT + BORDER))
             .exit_on_esc(true)
             .automatic_close(true)
             .build()
@@ -60,17 +65,23 @@ impl Game {
 
             window.draw_2d(&event, |context, g2d, device| {
                 clear(BACK_COLOR, g2d);
+                //renderer::draw_rect(BORDER_COLOR, 0.0, 0.0, SCREEN_WIDTH as f64, BORDER, &context, g2d);
+                renderer.draw_image("header", 0.0, 0.0, &context, g2d);
+
                 self.board.draw(&context, g2d);
                 let text = format!("Current score: {}", self.score);
                 renderer.draw_text(&text, &mut glyphs, &context, g2d);
                
                 match self.status {
+                    GameStatus::Startup => {
+                        renderer.draw_image("startup", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
+                    },
                     GameStatus::GameOver => {
                         renderer::draw_rect(GAME_OVER_COLOR, 0.0, 0.0, SCREEN_WIDTH, SCREEN_HEIGHT , &context, g2d);
-                        renderer.draw_image("game_over", &context, g2d);
+                        renderer.draw_image("game_over", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
                     },
                     GameStatus::Paused => {
-                        renderer.draw_image("paused", &context, g2d);
+                        renderer.draw_image("paused", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
                     },
                     _ => {}
                 }
@@ -88,7 +99,9 @@ impl Game {
             Key::R => self.block.rotate(&mut self.board),
             Key::X => *self = Game::new(),
             Key::P => { 
-                if self.status == GameStatus::Paused {
+                if self.status == GameStatus::Startup {
+                    self.status = GameStatus::Playing
+                } else if self.status == GameStatus::Paused {
                     self.status = GameStatus::Playing
                 } else if self.status == GameStatus::Playing { 
                     self.status = GameStatus::Paused 
