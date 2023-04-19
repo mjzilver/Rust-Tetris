@@ -80,3 +80,104 @@ impl Board {
         }
     }
 }
+
+#[cfg(test)]
+mod boards_tests {
+    use super::*;
+
+    #[test]
+    fn test_update() {
+        let mut board = Board::new();
+
+        let test_cell: Cell = Cell{
+            color: BLACK,
+            status: CellStatus::Frozen,
+        };
+
+        /*  this is how the bottom rows will look like 
+            [0, 1, 0, 0..] // this row will slide down
+            [1, 1, 1, 1..] // this row will be completed and removed
+        */
+        
+        // fills the bottom row 
+        for x in 0..WIDTH {
+            board.data[HEIGHT - 1][x] = test_cell.clone();
+        }
+
+        // block above the completed line to fall into place
+        board.data[HEIGHT - 2][1] = test_cell.clone();
+
+        let mut score = 0;
+        board.update(&mut score);
+
+        for x in 0..WIDTH {
+            // the cell at (HEIGHT - 1, 1) will be filled with the cell that was spawned above it
+            // this is to test if the blocks move down
+            if x == 1 { 
+                assert_eq!(board.data[HEIGHT - 1][x].status, CellStatus::Frozen);
+            } else {
+                assert_eq!(board.data[HEIGHT - 1][x].status, CellStatus::Empty);
+            }
+        }
+        // check if the block fell down and was removed from the original place
+        assert_eq!(board.data[HEIGHT - 2][1].status, CellStatus::Empty);
+
+        // check that the score increased when 1 row was completed
+        assert_eq!(score, 1);
+    }
+
+
+    #[test]
+    fn test_update_multiple_rows() {
+        let mut board = Board::new();
+
+        let test_cell: Cell = Cell{
+            color: BLACK,
+            status: CellStatus::Frozen,
+        };
+
+        /*  this is how the bottom rows will look like 
+            [0, 1, 0, 0..] // this row will slide down
+            [1, 1, 1, 1..] // this row will be completed and removed
+            [1, 1, 1, 1..] // this row will be completed and removed
+        */
+        
+        // fills the bottom row 
+        for x in 0..WIDTH {
+            board.data[HEIGHT - 1][x] = test_cell.clone();
+        }
+        for x in 0..WIDTH {
+            board.data[HEIGHT - 2][x] = test_cell.clone();
+        }
+
+        // block above the completed line to fall into place
+        board.data[HEIGHT - 3][1] = test_cell.clone();
+        board.data[HEIGHT - 4][1] = test_cell.clone();
+
+        let mut score = 0;
+        board.update(&mut score);
+
+        for x in 0..WIDTH {
+            if x == 1 { 
+                assert_eq!(board.data[HEIGHT - 1][x].status, CellStatus::Frozen);
+            } else {
+                assert_eq!(board.data[HEIGHT - 1][x].status, CellStatus::Empty);
+            }
+        }
+
+        // check if the 2nd row is empty
+        for x in 0..WIDTH {
+            if x == 1 { 
+                assert_eq!(board.data[HEIGHT - 1][x].status, CellStatus::Frozen);
+            } else {
+                assert_eq!(board.data[HEIGHT - 1][x].status, CellStatus::Empty);
+            }
+        }
+        // check if the block fell down and was removed from the original place
+        assert_eq!(board.data[HEIGHT - 3][1].status, CellStatus::Empty);
+        assert_eq!(board.data[HEIGHT - 4][1].status, CellStatus::Empty);
+
+        // check that the score increased by 2 when 2 row was completed
+        assert_eq!(score, 2);
+    }
+}
