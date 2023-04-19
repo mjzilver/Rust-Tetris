@@ -1,7 +1,7 @@
 use crate::{
     blockcolor::BlockColor,
     blockshape::{self, BlockShape},
-    board::{self, Board, Cell},
+    board::{self, Board, Cell, CellStatus},
 };
 
 pub struct Block {
@@ -45,7 +45,7 @@ impl Block {
         for y in 0..self.matrix.len() {
             for x in 0..self.matrix[y].len() {
                 if self.matrix[y][x] == 1 {
-                    *self.to_absolute(board, y, x) = Cell::Empty;
+                    self.to_absolute(board, y, x).status = CellStatus::Empty;
                 }
             }
         }
@@ -56,8 +56,8 @@ impl Block {
         for y in 0..self.matrix.len() {
             for x in 0..self.matrix[y].len() {
                 if self.matrix[y][x] == 1 {
-                    *self.to_absolute_from(board, position, y, x) =
-                        Cell::Color(self.color.to_color())
+                    self.to_absolute_from(board, position, y, x).color = self.color.to_color();
+                    self.to_absolute_from(board, position, y, x).status = CellStatus::Moving;
                 }
             }
         }
@@ -76,6 +76,14 @@ impl Block {
             self.add_to_board(board, next_position);
             // change the position
             self.position = next_position;
+        } else if self.status == BlockStatus::Frozen {
+            for y in 0..self.matrix.len() {
+                for x in 0..self.matrix[y].len() {
+                    if self.matrix[y][x] == 1 {
+                        self.to_absolute(board, y, x).status = CellStatus::Frozen;
+                    }
+                }
+            }
         }
     }
 
@@ -91,12 +99,12 @@ impl Block {
         for y in 0..self.matrix.len() {
             for x in 0..self.matrix[y].len() {
                 if self.matrix[y][x] == 1 {
-                    if (next_position.0 + y as isize) as usize >= board::HEIGHT {
-                        self.status = BlockStatus::Frozen;
+                    if Block::is_out_of_bounds(next_position, y, x) {
+                        if y_change >= 1 {
+                            self.status = BlockStatus::Frozen;
+                        }
                         return false;
-                    } else if Block::is_out_of_bounds(next_position, y, x) {
-                        return false;
-                    } else if *self.to_absolute_from(board, next_position, y, x) != Cell::Empty {
+                    } else if self.to_absolute_from(board, next_position, y, x).status != CellStatus::Empty {
                         let local_pos = Self::coord_add_i16_to_usize((y, x), (y_change, x_change));
                         if local_pos.0 < self.matrix.len() && local_pos.1 < self.matrix[local_pos.0].len() {
                             if self.matrix[local_pos.0][local_pos.1] == 0 {
@@ -127,9 +135,8 @@ impl Block {
     }
 
     fn has_collision(&mut self, board: &mut Board, position: (isize, isize), y: usize, x: usize) -> bool {
-        *self.to_absolute_from(board, position, y, x) != Cell::Empty && self.matrix[y][x] == 0
+        self.to_absolute_from(board, position, y, x).status != CellStatus::Empty && self.matrix[y][x] == 0
     }
-
 
     fn can_rotate(&mut self, board: &mut Board, matrix: &[[i32; 4]; 4]) -> bool {
         if self.status != BlockStatus::Moving {
@@ -139,9 +146,11 @@ impl Block {
         for y in 0..matrix.len() {
             for x in 0..matrix[y].len() {
                 if matrix[y][x] == 1 {
+                    // is it inside the board
                     if Block::is_out_of_bounds(self.position, y, x) {
                         return false
-                    } else if *self.to_absolute(board, y, x) != Cell::Empty && self.matrix[y][x] == 0  {
+                    // is the block it is moving into empty
+                    } else if self.to_absolute(board, y, x).status != CellStatus::Empty && self.matrix[y][x] == 0  {
                         return false;
                     }
                 }
