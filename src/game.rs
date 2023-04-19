@@ -6,7 +6,7 @@ use piston_window::*;
 
 const BACK_COLOR: Color = [0.5, 0.5, 0.5, 1.0];
 const GAME_OVER_COLOR: Color = [0.8, 0.0, 0.0, 0.8];
-const MOVING_PERIOD: f64 = 0.1;
+const MOVING_PERIOD: f64 = 0.5;
 const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * window::BLOCK_SIZE;
 const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * window::BLOCK_SIZE;
 
