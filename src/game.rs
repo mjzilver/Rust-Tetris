@@ -56,7 +56,7 @@ impl Game {
             .expect("Window failed to load");
 
         let renderer = Renderer::new(&mut window);
-        let mut glyphs = window.load_font(Path::new("gillsans.ttf")).expect("Could not load font");
+        let mut glyphs = window.load_font(Path::new("assets/gillsans.ttf")).expect("Could not load font");
 
         while let Some(event) = window.next() {
             if let Some(Button::Keyboard(key)) = event.release_args() {
@@ -65,7 +65,6 @@ impl Game {
 
             window.draw_2d(&event, |context, g2d, device| {
                 clear(BACK_COLOR, g2d);
-                //renderer::draw_rect(BORDER_COLOR, 0.0, 0.0, SCREEN_WIDTH as f64, BORDER, &context, g2d);
                 renderer.draw_image("header", 0.0, 0.0, &context, g2d);
 
                 self.board.draw(&context, g2d);

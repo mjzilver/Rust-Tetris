@@ -29,11 +29,11 @@ impl Renderer {
     }
 
     fn add_image_file(&mut self, name: &str, texture_context: &mut TextureContext<gfx_device_gl::Factory, gfx_device_gl::Resources, gfx_device_gl::CommandBuffer> ) {
-        let filename: &str = &(name.to_owned() + ".png");
+        let filename = format!("assets/{}.png", name);
 
         let texture = Texture::from_path(
             texture_context,
-            Path::new(filename),
+            Path::new(filename.as_str()),
             Flip::None,
             &TextureSettings::new(),
         )
