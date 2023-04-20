@@ -2,6 +2,7 @@ use std::path::Path;
 
 use crate::block::{Block, BlockStatus};
 use crate::board::{self, Board};
+use crate::gamestate::{GameStatus, GameEvent};
 use crate::renderer::{self, Renderer, BORDER};
 use piston_window::types::Color;
 use piston_window::*;
@@ -24,14 +25,6 @@ pub struct Game {
     waiting_time: f64,
     score: u16,
     status: GameStatus
-}
-
-#[derive(PartialEq)]
-pub enum GameStatus {
-    Startup,
-    Paused,
-    Playing,
-    GameOver,
 }
 
 impl Game {
@@ -76,7 +69,7 @@ impl Game {
                         renderer.draw_image("startup", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
                     },
                     GameStatus::GameOver => {
-                        renderer::draw_rect(GAME_OVER_COLOR, 0.0, 0.0, SCREEN_WIDTH, SCREEN_HEIGHT , &context, g2d);
+                        renderer::draw_rect(GAME_OVER_COLOR, 0.0, BORDER, SCREEN_WIDTH, SCREEN_HEIGHT , &context, g2d);
                         renderer.draw_image("game_over", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
                     },
                     GameStatus::Paused => {
@@ -91,22 +84,26 @@ impl Game {
     }
 
     fn input(&mut self, key: &Key) {
-        match key {
-            Key::A => self.block.move_sideways(&mut self.board, -1),
-            Key::D => self.block.move_sideways(&mut self.board, 1),
-            Key::S => self.block.move_down(&mut self.board),
-            Key::R => self.block.rotate(&mut self.board),
-            Key::X => *self = Game::new(),
-            Key::P => { 
-                if self.status == GameStatus::Startup {
-                    self.status = GameStatus::Playing
-                } else if self.status == GameStatus::Paused {
-                    self.status = GameStatus::Playing
-                } else if self.status == GameStatus::Playing { 
-                    self.status = GameStatus::Paused 
-                }
-             },
-            _ => {}
+        if self.status == GameStatus::Playing {
+            match key {
+                Key::A => self.block.move_sideways(&mut self.board, -1),
+                Key::D => self.block.move_sideways(&mut self.board, 1),
+                Key::S => self.block.move_down(&mut self.board),
+                Key::R => self.block.rotate(&mut self.board),
+                Key::P => self.status.update(GameEvent::Pause),
+                _ => {}
+            }
+        } else {
+            match key {
+                Key::P => self.status.update(GameEvent::Pause),
+                Key::F => { 
+                    if  self.status == GameStatus::GameOver {
+                        *self = Game::new()
+                    }
+                    self.status.update(GameEvent::Start)
+                },
+                _ => {}
+            }
         }
     }
 
@@ -119,7 +116,7 @@ impl Game {
 
                 match Block::next(&mut self.board, BLOCK_SPAWN_POSITION, &self.block) {
                     Some(block) => self.block = block,
-                    None => self.status = GameStatus::GameOver,
+                    None => self.status.update(GameEvent::End),
                 }
             } else {
                 self.block.move_down(&mut self.board);

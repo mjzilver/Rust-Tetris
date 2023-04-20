@@ -1,34 +1,24 @@
-enum GameStatus {
+#[derive(PartialEq)]
+pub enum GameStatus {
     Startup,
     Playing,
     Paused,
     GameOver,
 }
 
-enum GameEvent {
+pub enum GameEvent {
     Start,
     Pause,
-    Unpause,
     End,
 }
 
-struct GameState {
-    status: GameStatus,
-}
-
-impl GameState {
-    pub fn new() -> Self {
-        GameState {
-            status: GameStatus::Startup,
-        }
-    }
-
+impl GameStatus {
     pub fn update(&mut self, event: GameEvent) {
-        match self.status {
+        match self {
             GameStatus::Startup => {
                 match event {
                     GameEvent::Start => {
-                        self.status = GameStatus::Playing;
+                        *self = GameStatus::Playing;
                     }
                     _ => {}
                 }
@@ -36,21 +26,21 @@ impl GameState {
             GameStatus::Playing => {
                 match event {
                     GameEvent::Pause => {
-                        self.status = GameStatus::Paused;
+                        *self = GameStatus::Paused;
                     }
                     GameEvent::End => {
-                        self.status = GameStatus::GameOver;
+                        *self = GameStatus::GameOver;
                     }
                     _ => {}
                 }
             }
             GameStatus::Paused => {
                 match event {
-                    GameEvent::Unpause => {
-                        self.status = GameStatus::Playing;
+                    GameEvent::Pause => {
+                        *self = GameStatus::Playing;
                     }
                     GameEvent::End => {
-                        self.status = GameStatus::GameOver;
+                        *self = GameStatus::GameOver;
                     }
                     _ => {}
                 }
@@ -58,7 +48,7 @@ impl GameState {
             GameStatus::GameOver => {
                 match event {
                     GameEvent::Start => {
-                        self.status = GameStatus::Playing;
+                        *self = GameStatus::Playing;
                     }
                     _ => {}
                 }

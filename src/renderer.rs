@@ -47,12 +47,12 @@ impl Renderer {
     }
 
     pub fn draw_text(&self, text: &str, glyphs: &mut Glyphs, context: &Context, g2d: &mut G2d) {
-        Text::new_color(BLACK, 22)
+        Text::new_color(BLACK, 20)
         .draw(
             text,
             glyphs,
             &context.draw_state,
-            context.transform.trans(20.0, 50.0),
+            context.transform.trans(10.0, 50.0),
             g2d,
         )
         .unwrap();
