@@ -72,11 +72,9 @@ impl Board {
         for y in (0..y).rev() {
             for x in 0..WIDTH {
                 if self.data[y][x].status == CellStatus::Frozen {
-                    self.data[y + 1][x] = self.data[y][x];
-                    self.data[y][x].status = CellStatus::Empty;
+                    (self.data[y][x], self.data[y + 1][x]) = (self.data[y + 1][x], self.data[y][x]);
                 }
             }
-
         }
     }
 }
@@ -137,6 +135,7 @@ mod boards_tests {
         };
 
         /*  this is how the bottom rows will look like 
+            [0, 1, 0, 0..] // this row will slide down
             [0, 1, 0, 0..] // this row will slide down
             [1, 1, 1, 1..] // this row will be completed and removed
             [1, 1, 1, 1..] // this row will be completed and removed
