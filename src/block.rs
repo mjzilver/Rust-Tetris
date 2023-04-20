@@ -117,30 +117,28 @@ impl Block {
             for x in 0..self.matrix[y].len() {
                 if self.matrix[y][x] == 1 {
                     if Block::is_out_of_bounds(next_position, y, x) {
-                        if y_change >= 1 {
-                            self.status = BlockStatus::Frozen;
-                        }
-                        return false;
+                        return self.freeze_if(y_change);
                     } else if self.get_cell_at_specific_position(board, next_position, y, x).status != CellStatus::Empty {
-                        let local_pos = Self::coord_add_i16_to_usize((y, x), (y_change, x_change));
+                        let local_pos: (usize, usize) = Self::coord_add_i16_to_usize((y, x), (y_change, x_change));
                         if local_pos.0 < self.matrix.len() && local_pos.1 < self.matrix[local_pos.0].len() {
                             if self.matrix[local_pos.0][local_pos.1] == 0 {
-                                if y_change >= 1 {
-                                    self.status = BlockStatus::Frozen;
-                                }
-                                return false;
+                                return self.freeze_if(y_change);
                             }
                         } else {
-                            if y_change >= 1 {
-                                self.status = BlockStatus::Frozen;
-                            }
-                            return false;
+                            return self.freeze_if(y_change);
                         }
                     }
                 }
             }
         }
         true
+    }
+
+    fn freeze_if(&mut self, y_change: i16) -> bool {
+        if y_change >= 1 {
+            self.status = BlockStatus::Frozen;
+        }
+        return false
     }
 
     fn is_out_of_bounds(position: (isize, isize), y: usize, x: usize) -> bool {
