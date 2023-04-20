@@ -12,6 +12,7 @@ pub enum BlockShape {
 }
 
 impl BlockShape {
+    /// Generates a random BlockShape
     pub fn random() -> Self {
         let blocks = [
             BlockShape::I,
@@ -26,6 +27,7 @@ impl BlockShape {
         blocks[rng.gen_range(0..blocks.len())]
     }
 
+    /// Generates a random BlockShape except for the provided excluded shape
     pub fn random_except(excluded_shape: BlockShape) -> BlockShape {
         let blocks = [
             BlockShape::I,
@@ -44,6 +46,7 @@ impl BlockShape {
         blocks[index]
     }    
 
+    /// Returns the shape matrix of the BlockShape
     pub fn get_shape(&self) -> [[i32; 4]; 4] {
         match *self {
             BlockShape::I => [
@@ -91,6 +94,7 @@ impl BlockShape {
         }
     }
 
+    /// rotates a given a given matrix clockwise 90 degrees
     pub fn rotate_matrix(matrix: &mut [[i32; 4]; 4]) {
         // transpose the matrix
         for i in 0..4 {
@@ -110,5 +114,4 @@ impl BlockShape {
             }
         }
     }
-    
 }

@@ -18,6 +18,7 @@ pub enum BlockStatus {
 }
 
 impl Block {
+    /// This method creates a new Block instance and adds it to the board at the specified position
     pub fn new(board: &mut Board, position: (isize, isize)) -> Block {
         let shape = BlockShape::random();
         let color = BlockColor::random();
@@ -35,6 +36,9 @@ impl Block {
         block
     }
 
+    /// This method creates a new Block instance with a different shape and color from the old block
+    /// Adds it to the board at the specified position if the space is not already filled
+    /// If the space is filled it returns a None and the game should end
     pub fn next(board: &mut Board, position: (isize, isize), old_block: &Block) -> Option<Block> {
         let shape = BlockShape::random_except(old_block.shape);
         let color = BlockColor::next_color(old_block.color);
@@ -56,8 +60,7 @@ impl Block {
         }
     }
 
-
-    // erases the block from the board
+    /// This method erases the block from the board
     fn erase_from_board(&mut self, board: &mut Board) {
         for y in 0..self.matrix.len() {
             for x in 0..self.matrix[y].len() {
@@ -68,7 +71,7 @@ impl Block {
         }
     }
 
-    // add the block to the board
+    /// This method adds the block to the board
     fn add_to_board(&mut self, board: &mut Board, position: (isize, isize)) {
         for y in 0..self.matrix.len() {
             for x in 0..self.matrix[y].len() {
@@ -80,6 +83,7 @@ impl Block {
         }
     }
 
+    /// This method updates the block's position on the board
     pub fn update(&mut self, board: &mut Board, y_change: i16, x_change: i16) {
         let next_position = (
             self.position.0 + y_change as isize,
@@ -104,6 +108,7 @@ impl Block {
         }
     }
 
+    /// This method checks if the block can move to the specified position
     fn can_move(
         &mut self, board: &mut Board,
         next_position: (isize, isize),
@@ -134,6 +139,7 @@ impl Block {
         true
     }
 
+    /// This method changes the block's status to Frozen if it cannot move downward
     fn freeze_if(&mut self, y_change: i16) -> bool {
         if y_change >= 1 {
             self.status = BlockStatus::Frozen;
@@ -141,6 +147,7 @@ impl Block {
         return false
     }
 
+    /// This method checks if the specified position is out of bounds of the game board
     fn is_out_of_bounds(position: (isize, isize), y: usize, x: usize) -> bool {
         position.0 + y as isize >= board::HEIGHT as isize
             || position.1 >= board::WIDTH as isize
@@ -149,6 +156,7 @@ impl Block {
             || (position.1 + x as isize) < 0
     }
 
+    /// This method checks if the block can be rotated
     fn can_rotate(&mut self, board: &mut Board, matrix: &[[i32; 4]; 4]) -> bool {
         if self.status != BlockStatus::Moving {
             return false;
@@ -170,6 +178,7 @@ impl Block {
         true
     }
 
+    /// This method checks if the space the block would fill is already taken and returns true if it is taken
     fn check_if_space_filled(&mut self, board: &mut Board) -> bool {
         for y in 0..self.matrix.len() {
             for x in 0..self.matrix[y].len() {
@@ -181,6 +190,8 @@ impl Block {
         false
     }
 
+    /// This helper function takes two tuples u: (usize, usize), i: (i16, i16)
+    /// Add them together and returns a (usize, usize)
     fn coord_add_i16_to_usize(u: (usize, usize), i: (i16, i16)) -> (usize, usize) {
         (
             (u.0 as i64 + i.0 as i64) as usize,
@@ -188,10 +199,12 @@ impl Block {
         )
     }
 
+    /// This gets the associated cell from the board given the current position and the associated y and x inside the block matrix
     fn get_cell_at_current_position<'a>(&mut self, board: &'a mut Board, y: usize, x: usize) -> &'a mut Cell {
         &mut board.data[(self.position.0 + y as isize) as usize][(self.position.1 + x as isize) as usize]
     }
 
+    /// This gets the associated cell from the board given a specified position and the associated y and x inside the block matrix
     fn get_cell_at_specific_position<'a>(
         &mut self, board: &'a mut Board,
         position: (isize, isize),
@@ -200,14 +213,17 @@ impl Block {
         &mut board.data[(position.0 + y as isize) as usize][(position.1 + x as isize) as usize]
     }
 
+    /// This method tries to move a block sideways on the game board
     pub fn move_sideways(&mut self, board: &mut Board, x_change: i16) {
         self.update(board, 0, x_change)
     }
 
+    /// This method tries to move a block down on the game board
     pub fn move_down(&mut self, board: &mut Board) {
         self.update(board, 1, 0)
     }
 
+    /// This method tries to rotate a block 90 degrees clockwise on the game board
     pub fn rotate(&mut self, board: &mut Board) {
         if self.shape == blockshape::BlockShape::O {
             return;

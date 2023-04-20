@@ -1,24 +1,35 @@
 use std::path::Path;
-
-use crate::block::{Block, BlockStatus};
-use crate::board::{self, Board};
-use crate::gamestate::{GameStatus, GameEvent};
-use crate::renderer::{self, Renderer, BORDER};
+use crate::{
+    block::{Block, BlockStatus}, 
+    board::{self, Board},
+    gamestate::{GameStatus, GameEvent}, 
+    renderer::{self, Renderer, BORDER}};
 use piston_window::types::Color;
 use piston_window::*;
 extern crate piston_window;
 
-const BACK_COLOR: Color = [0.5, 0.5, 0.5, 1.0];
+/// The color used for the background of the game
+const BACK_COLOR: Color = [0.2, 0.5, 0.5, 1.0];
+/// The color that is shown when you are game over
 const GAME_OVER_COLOR: Color = [0.8, 0.0, 0.0, 0.8];
-const MOVING_PERIOD: f64 = 0.3;
+/// How many seconds it takes before the piece falls one row down
+const MOVING_PERIOD: f64 = 0.5;
+/// the width of the window 
 pub const SCREEN_WIDTH: f64 = (board::WIDTH as f64) * renderer::BLOCK_SIZE;
+/// the height of the window 
 pub const SCREEN_HEIGHT: f64 = (board::HEIGHT as f64) * renderer::BLOCK_SIZE;
+/// y, x where a block will start at when the game is loaded or a new block is created
 const BLOCK_SPAWN_POSITION: (isize, isize) = (0, (board::WIDTH as isize / 2) - 1);
+/// the width that images should be in to be used as menu items 
 const MENU_IMAGE_WIDTH: f64 = 200.0;
+/// the height that images should be in to be used as menu items 
 const MENU_IMAGE_HEIGHT: f64 = 80.0;
+/// where menu images will be placed X - this is used to offset it so it's neatly centered
 const IMAGE_LOCATION_X: f64 = (SCREEN_WIDTH - MENU_IMAGE_WIDTH) / 2.0;
+/// where menu images will be placed Y - this is used to offset it so it's neatly centered
 const IMAGE_LOCATION_Y: f64 = (SCREEN_HEIGHT - MENU_IMAGE_HEIGHT) / 2.0;
 
+/// struct holding all the game data
 pub struct Game {
     board: Board,
     block: Block,
@@ -28,6 +39,7 @@ pub struct Game {
 }
 
 impl Game {
+    /// Creates a new instance of the game
     pub fn new() -> Game {
         let mut board = board::Board::new();
         let block = Block::new(&mut board, BLOCK_SPAWN_POSITION);
@@ -41,6 +53,7 @@ impl Game {
         }
     }
 
+    /// Starts the main game loop and handles user input and rendering
     pub fn start_loop(&mut self) {
         let mut window: PistonWindow = WindowSettings::new("Tetris", (SCREEN_WIDTH, SCREEN_HEIGHT + BORDER))
             .exit_on_esc(true)
@@ -83,6 +96,7 @@ impl Game {
         }
     }
 
+    /// Handles user input by updating the game state according to input
     fn input(&mut self, key: &Key) {
         if self.status == GameStatus::Playing {
             match key {
@@ -107,6 +121,7 @@ impl Game {
         }
     }
 
+    /// Updates the game state based on the elapsed time since the last update
     fn update(&mut self, update_args: &UpdateArgs) {
         self.waiting_time += update_args.dt;
 

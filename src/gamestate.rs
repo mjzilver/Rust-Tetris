@@ -1,3 +1,4 @@
+/// This enum represents the possible states of a game
 #[derive(PartialEq)]
 pub enum GameStatus {
     Startup,
@@ -5,7 +6,7 @@ pub enum GameStatus {
     Paused,
     GameOver,
 }
-
+/// This  enum represents the possible events that can occur during a game
 pub enum GameEvent {
     Start,
     Pause,
@@ -13,6 +14,7 @@ pub enum GameEvent {
 }
 
 impl GameStatus {
+    /// Updates the GameStatus based on the given GameEvent
     pub fn update(&mut self, event: GameEvent) {
         match self {
             GameStatus::Startup => {

@@ -5,14 +5,19 @@ use piston_window::G2d;
 
 use crate::renderer;
 
+/// the width of the playing board
 pub const WIDTH: usize = 10;
+/// the height of the playing board
 pub const HEIGHT: usize = 16;
 
+/// this struct holds a 2d vector array of cells 
+/// size is HEIGHT * WIDTH
 #[derive(PartialEq)]
 pub struct Board {
     pub data: Vec<Vec<Cell>>,
 }
 
+/// holds data about cells; the color and status
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Cell {
     pub color: Color,
@@ -27,12 +32,14 @@ pub enum CellStatus {
 }
 
 impl Board {
+    /// Creates a new empty board filled with empty cells
     pub fn new() -> Board {
         let data = vec![vec![Cell{color: BLACK, status: CellStatus::Empty}; WIDTH]; HEIGHT];
 
         Board { data }
     }
 
+    /// Draws all blocks to the window
     pub fn draw(&self, context: &Context, g2d: &mut G2d) {
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
@@ -47,7 +54,8 @@ impl Board {
         }
     }
 
-    /// This checks for board updates and to remove tiles
+    /// This checks the board for completed lines 
+    /// If completed lines are found they are removed, score is increased and calls move_down
     pub fn update(&mut self, score: &mut u16) {
         for y in (0..HEIGHT).rev() {
             let mut cell_count = 0;
@@ -68,6 +76,7 @@ impl Board {
         }
     }
 
+    /// Moves down all blocks starting at Y
     fn move_down(&mut self, y: usize) {
         for y in (0..y).rev() {
             for x in 0..WIDTH {

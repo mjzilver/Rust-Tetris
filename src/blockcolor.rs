@@ -14,6 +14,7 @@ pub enum BlockColor {
 }
 
 impl BlockColor {
+    /// Convert the block color to a corresponding piston_window color
     pub fn to_color(self: &BlockColor) -> Color {
         match self {
             BlockColor::Red => [1.00, 0.00, 0.00, 1.0],
@@ -27,6 +28,7 @@ impl BlockColor {
         }
     }
 
+    /// Get a random block color
     pub fn random() -> Self {
         let colors = [
             BlockColor::Red,
@@ -42,7 +44,8 @@ impl BlockColor {
         colors[rng.gen_range(0..colors.len())]
     }
 
-    pub fn next_color(current_color: BlockColor) -> BlockColor {
+    /// Get the next block color in the sequence
+        pub fn next_color(current_color: BlockColor) -> BlockColor {
         match current_color {
             BlockColor::Red => BlockColor::Blue,
             BlockColor::Blue => BlockColor::Green,
