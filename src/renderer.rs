@@ -23,7 +23,7 @@ impl Renderer {
         };
 
         let textures = HashMap::new();
-        let mut renderer = Renderer { images: textures };
+        let mut renderer: Renderer = Renderer { images: textures };
 
         renderer.add_image_file("paused", &mut texture_context);
         renderer.add_image_file("game_over", &mut texture_context);

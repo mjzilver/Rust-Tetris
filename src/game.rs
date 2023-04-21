@@ -3,7 +3,7 @@ use crate::{
     block::{Block, BlockStatus}, 
     board::{self, Board},
     gamestate::{GameStatus, GameEvent}, 
-    renderer::{self, Renderer, BORDER}};
+    renderer::{self, Renderer, BORDER}, audio::Audio};
 use piston_window::types::Color;
 use piston_window::*;
 extern crate piston_window;
@@ -29,10 +29,18 @@ const IMAGE_LOCATION_X: f64 = (SCREEN_WIDTH - MENU_IMAGE_WIDTH) / 2.0;
 /// where menu images will be placed Y - this is used to offset it so it's neatly centered
 const IMAGE_LOCATION_Y: f64 = (SCREEN_HEIGHT - MENU_IMAGE_HEIGHT) / 2.0;
 
+enum InputType {
+    Left,
+    Right,
+    Down,
+    Rotate,
+}
+
 /// struct holding all the game data
 pub struct Game {
     board: Board,
     block: Block,
+    audio: Audio,
     waiting_time: f64,
     score: u16,
     status: GameStatus
@@ -47,6 +55,7 @@ impl Game {
         Game {
             board,
             block,
+            audio: Audio::new(),
             score: 0,
             waiting_time: 0.0,
             status: GameStatus::Startup
@@ -104,10 +113,10 @@ impl Game {
     fn input(&mut self, key: &Key) {
         if self.status == GameStatus::Playing {
             match key {
-                Key::Left  | Key::A => self.block.move_sideways(&mut self.board, -1),
-                Key::Right | Key::D => self.block.move_sideways(&mut self.board, 1),
-                Key::Down  | Key::S => self.block.move_down(&mut self.board),
-                Key::Up    | Key::W | Key::R => self.block.rotate(&mut self.board),
+                Key::Left  | Key::A => self.handle_movement_input(InputType::Left),
+                Key::Right | Key::D => self.handle_movement_input(InputType::Right),
+                Key::Down  | Key::S => self.handle_movement_input(InputType::Down),
+                Key::Up    | Key::W | Key::R => self.handle_movement_input(InputType::Rotate),
                 Key::P => self.status.update(GameEvent::Pause),
                 _ => {}
             }
@@ -125,6 +134,33 @@ impl Game {
         }
     }
 
+    /// handles the movement input to have a cleaner input() function
+    fn handle_movement_input(&mut self, input_type: InputType) {
+        /// to go left go -1 on the x-axis
+        const LEFT_X: i16 = -1;
+        /// to go right go +1 on the x-axis
+        const RIGHT_X: i16 = 1;
+
+        match input_type {
+            InputType::Left => {
+                self.audio.play_audio("blip");
+                self.block.move_sideways(&mut self.board, LEFT_X);
+            },
+            InputType::Right => {
+                self.audio.play_audio("blip");
+                self.block.move_sideways(&mut self.board, RIGHT_X);
+            },
+            InputType::Down => {
+                self.audio.play_audio("blip");
+                self.block.move_down(&mut self.board);
+            },
+            InputType::Rotate => { 
+                self.audio.play_audio("woosh");
+                self.block.rotate(&mut self.board);
+            },
+        }
+    }
+
     /// Updates the game state based on the elapsed time since the last update
     fn update(&mut self, update_args: &UpdateArgs) {
         self.waiting_time += update_args.dt;
@@ -135,7 +171,10 @@ impl Game {
 
                 match Block::next(&mut self.board, BLOCK_SPAWN_POSITION, &self.block) {
                     Some(block) => self.block = block,
-                    None => self.status.update(GameEvent::End),
+                    None => { 
+                        self.audio.play_audio("lose");
+                        self.status.update(GameEvent::End)
+                    },
                 }
             } else {
                 self.block.move_down(&mut self.board);
