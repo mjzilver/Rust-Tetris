@@ -4,6 +4,7 @@ use crate::{
     board::{self, Board},
     gamestate::{GameStatus, GameEvent}, 
     renderer::{self, Renderer, BORDER}};
+use gfx_device_gl::Device;
 use piston_window::types::Color;
 use piston_window::*;
 extern crate piston_window;
@@ -62,6 +63,7 @@ impl Game {
             .expect("Window failed to load");
 
         let renderer = Renderer::new(&mut window);
+
         let mut glyphs = window.load_font(Path::new("assets/gillsans.ttf")).expect("Could not load font");
 
         while let Some(event) = window.next() {
@@ -69,41 +71,44 @@ impl Game {
                 self.input(&key)
             }
 
-            window.draw_2d(&event, |context, g2d, device| {
-                clear(BACK_COLOR, g2d);
-                renderer.draw_image("header", 0.0, 0.0, &context, g2d);
-
-                self.board.draw(&context, g2d);
-                let text = format!("Current score: {}", self.score);
-                renderer.draw_text(&text, &mut glyphs, &context, g2d);
-               
-                match self.status {
-                    GameStatus::Startup => {
-                        renderer.draw_image("startup", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
-                    },
-                    GameStatus::GameOver => {
-                        renderer::draw_rect(GAME_OVER_COLOR, 0.0, BORDER, SCREEN_WIDTH, SCREEN_HEIGHT , &context, g2d);
-                        renderer.draw_image("game_over", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
-                    },
-                    GameStatus::Paused => {
-                        renderer.draw_image("paused", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
-                    },
-                    _ => {}
-                }
-                glyphs.factory.encoder.flush(device);
-            });
+            window.draw_2d(&event, |context, g2d: &mut G2d, device| self.draw(context, g2d, device, &renderer, &mut glyphs));
             event.update(|update_args: &UpdateArgs| self.update(update_args));
         }
+    }
+
+    /// draws everything needed for the game screen
+    fn draw(&self, context: Context, g2d: &mut G2d, device: &mut Device, renderer: &Renderer, glyphs: &mut Glyphs) {
+        clear(BACK_COLOR, g2d);
+        renderer.draw_image("header", 0.0, 0.0, &context, g2d);
+
+        self.board.draw(&context, g2d);
+        let text = format!("Current score: {}", self.score);
+        renderer.draw_text(&text, glyphs, &context, g2d);
+       
+        match self.status {
+            GameStatus::Startup => {
+                renderer.draw_image("startup", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
+            },
+            GameStatus::GameOver => {
+                renderer::draw_rect(GAME_OVER_COLOR, 0.0, BORDER, SCREEN_WIDTH, SCREEN_HEIGHT , &context, g2d);
+                renderer.draw_image("game_over", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
+            },
+            GameStatus::Paused => {
+                renderer.draw_image("paused", IMAGE_LOCATION_X, IMAGE_LOCATION_Y, &context, g2d);
+            },
+            _ => {}
+        }
+        glyphs.factory.encoder.flush(device);
     }
 
     /// Handles user input by updating the game state according to input
     fn input(&mut self, key: &Key) {
         if self.status == GameStatus::Playing {
             match key {
-                Key::A => self.block.move_sideways(&mut self.board, -1),
-                Key::D => self.block.move_sideways(&mut self.board, 1),
-                Key::S => self.block.move_down(&mut self.board),
-                Key::R => self.block.rotate(&mut self.board),
+                Key::Left  | Key::A => self.block.move_sideways(&mut self.board, -1),
+                Key::Right | Key::D => self.block.move_sideways(&mut self.board, 1),
+                Key::Down  | Key::S => self.block.move_down(&mut self.board),
+                Key::Up    | Key::W | Key::R => self.block.rotate(&mut self.board),
                 Key::P => self.status.update(GameEvent::Pause),
                 _ => {}
             }
