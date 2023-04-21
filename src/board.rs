@@ -69,8 +69,8 @@ impl Board {
                 for x in 0..WIDTH {
                     self.data[y][x].status = CellStatus::Empty;
                 }
-                self.move_down(y);
                 *score += 1;
+                self.move_down(y);
                 return self.update(score);
             }
         }

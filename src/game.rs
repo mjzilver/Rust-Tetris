@@ -3,7 +3,7 @@ use crate::{
     block::{Block, BlockStatus}, 
     board::{self, Board},
     gamestate::{GameStatus, GameEvent}, 
-    renderer::{self, Renderer, BORDER}, audio::Audio};
+    renderer::{self, Renderer, BORDER}, audio::{Audio, SoundEffect}};
 use piston_window::types::Color;
 use piston_window::*;
 extern crate piston_window;
@@ -117,17 +117,24 @@ impl Game {
                 Key::Right | Key::D => self.handle_movement_input(InputType::Right),
                 Key::Down  | Key::S => self.handle_movement_input(InputType::Down),
                 Key::Up    | Key::W | Key::R => self.handle_movement_input(InputType::Rotate),
-                Key::P => self.status.update(GameEvent::Pause),
+                Key::P => { 
+                    self.audio.play_audio(SoundEffect::Menu);
+                    self.status.update(GameEvent::Pause)
+                },
                 _ => {}
             }
         } else {
             match key {
-                Key::P => self.status.update(GameEvent::Pause),
+                Key::P => { 
+                    self.audio.play_audio(SoundEffect::Menu);
+                    self.status.update(GameEvent::Pause)
+                },
                 Key::F => { 
                     if  self.status == GameStatus::GameOver {
                         *self = Game::new()
                     }
-                    self.status.update(GameEvent::Start)
+                    self.status.update(GameEvent::Start);
+                    self.audio.play_audio(SoundEffect::Menu);
                 },
                 _ => {}
             }
@@ -143,19 +150,19 @@ impl Game {
 
         match input_type {
             InputType::Left => {
-                self.audio.play_audio("blip");
+                self.audio.play_audio(SoundEffect::Move);
                 self.block.move_sideways(&mut self.board, LEFT_X);
             },
             InputType::Right => {
-                self.audio.play_audio("blip");
+                self.audio.play_audio(SoundEffect::Move);
                 self.block.move_sideways(&mut self.board, RIGHT_X);
             },
             InputType::Down => {
-                self.audio.play_audio("blip");
+                self.audio.play_audio(SoundEffect::Move);
                 self.block.move_down(&mut self.board);
             },
             InputType::Rotate => { 
-                self.audio.play_audio("woosh");
+                self.audio.play_audio(SoundEffect::Rotate);
                 self.block.rotate(&mut self.board);
             },
         }
@@ -172,7 +179,7 @@ impl Game {
                 match Block::next(&mut self.board, BLOCK_SPAWN_POSITION, &self.block) {
                     Some(block) => self.block = block,
                     None => { 
-                        self.audio.play_audio("lose");
+                        self.audio.play_audio(SoundEffect::Lose);
                         self.status.update(GameEvent::End)
                     },
                 }
