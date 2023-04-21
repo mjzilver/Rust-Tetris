@@ -1,6 +1,6 @@
 use std::path::Path;
 use std::collections::HashMap;
-use piston_window::{types::Color, rectangle, image, Context, G2d, PistonWindow, TextureContext, Texture, Flip, TextureSettings, Transformed, Text, color::BLACK, Glyphs};
+use piston_window::{types::Color, rectangle, image, Context, G2d, PistonWindow, Texture, Flip, TextureSettings, Transformed, Text, color::BLACK, Glyphs, G2dTextureContext, G2dTexture};
 
 /// how big the blocks will be in pixels
 pub const BLOCK_SIZE: f64 = 25.0;
@@ -11,13 +11,13 @@ pub const BORDER: f64 = 80.0;
 
 /// Renderer struct holds all the images
 pub struct Renderer {
-   images: HashMap<String, Texture<gfx_device_gl::Resources>>,
+   images: HashMap<String, G2dTexture>,
 }
 
 impl Renderer {
     /// Creates a new instance of Renderer and loads all necessary textures
     pub fn new(window: &mut PistonWindow) -> Self {
-        let mut texture_context: TextureContext<gfx_device_gl::Factory, gfx_device_gl::Resources, gfx_device_gl::CommandBuffer> = TextureContext {
+        let mut texture_context: G2dTextureContext = G2dTextureContext {
             factory: window.factory.clone(),
             encoder: window.factory.create_command_buffer().into(),
         };
@@ -34,7 +34,7 @@ impl Renderer {
     }
 
     /// Adds an image file to the textures in the struct according to a given string
-    fn add_image_file(&mut self, name: &str, texture_context: &mut TextureContext<gfx_device_gl::Factory, gfx_device_gl::Resources, gfx_device_gl::CommandBuffer> ) {
+    fn add_image_file(&mut self, name: &str, texture_context: &mut G2dTextureContext ) {
         let filename = format!("assets/{}.png", name);
 
         let texture = Texture::from_path(

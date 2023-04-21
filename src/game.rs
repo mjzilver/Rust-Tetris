@@ -4,7 +4,6 @@ use crate::{
     board::{self, Board},
     gamestate::{GameStatus, GameEvent}, 
     renderer::{self, Renderer, BORDER}};
-use gfx_device_gl::Device;
 use piston_window::types::Color;
 use piston_window::*;
 extern crate piston_window;
@@ -77,7 +76,7 @@ impl Game {
     }
 
     /// draws everything needed for the game screen
-    fn draw(&self, context: Context, g2d: &mut G2d, device: &mut Device, renderer: &Renderer, glyphs: &mut Glyphs) {
+    fn draw(&self, context: Context, g2d: &mut G2d, device: &mut GfxDevice, renderer: &Renderer, glyphs: &mut Glyphs) {
         clear(BACK_COLOR, g2d);
         renderer.draw_image("header", 0.0, 0.0, &context, g2d);
 
