@@ -1,5 +1,6 @@
 # Rust-Tetris
-A rust take on the classic tetris game
+A rust take on the classic tetris game - Made to learn the basics of Rust as a fun learning project
+
 Features include: 
 - documentation
 - unit testing
